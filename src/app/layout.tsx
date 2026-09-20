@@ -7,6 +7,12 @@ import Header from '@/components/Header';
 export const metadata: Metadata = {
   title: 'ElectroMarketCuba',
   description: 'Tecnología, energía y movilidad en Cuba.',
+  applicationName: 'ElectroMarketCuba',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export const viewport: Viewport = {
