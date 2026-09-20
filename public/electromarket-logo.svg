@@ -1,0 +1,9 @@
+<svg width="620" height="120" viewBox="0 0 620 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>ElectroMarketCuba</title>
+  <path d="M22 17h12c17 0 28 9 34 28l15 47c3 9 11 14 20 14h48" stroke="#1169BE" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M64 52h57M143 52h55l-9 35" stroke="#1169BE" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M139 15h39l-25 35h28l-51 45 14-36h-22l17-44Z" fill="#1169BE"/>
+  <circle cx="92" cy="111" r="9" stroke="#4B4F56" stroke-width="7"/>
+  <circle cx="179" cy="111" r="9" stroke="#4B4F56" stroke-width="7"/>
+  <text x="228" y="76" font-family="Arial, sans-serif" font-size="47" font-weight="700" letter-spacing="-2"><tspan fill="#1169BE">Electro</tspan><tspan fill="#4B4F56">Market</tspan></text>
+</svg>

@@ -1,24 +1,28 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { CartProvider } from "./cart/CarConext"; // Ajusta la ruta si es necesario
+import type { Metadata, Viewport } from 'next';
+import type { ReactNode } from 'react';
+import './globals.css';
+import Providers from '@/components/Providers';
+import Header from '@/components/Header';
 
 export const metadata: Metadata = {
-  title: "ElectroMarket Cuba",
-  description: "Tu proveedor de confianza",
+  title: 'ElectroMarketCuba',
+  description: 'Tecnología, energía y movilidad en Cuba.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="es">
-      <body className="bg-slate-50 text-slate-900 antialiased">
-        <CartProvider>
-          {/* Aquí puedes meter un <Navbar /> global más adelante */}
-          <main className="min-h-screen">{children}</main>
-        </CartProvider>
+      <body>
+        <Providers>
+          <Header />
+          <main>{children}</main>
+        </Providers>
       </body>
     </html>
   );

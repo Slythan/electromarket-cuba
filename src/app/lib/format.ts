@@ -1,0 +1,46 @@
+import type { CartItem, CustomerData } from './types';
+
+export const formatMoney = (amount: number, currency: string) =>
+  `${(Number(amount) || 0).toFixed(2)} ${currency}`;
+
+export const onlyDigits = (value: string) => value.replace(/\D/g, '');
+
+/** Traduce los errores más comunes de Supabase al español. */
+export function translateError(message?: string): string {
+  const m = message ?? '';
+  if (/Invalid login credentials/i.test(m)) return 'Correo o contraseña incorrectos.';
+  if (/already registered|already been registered/i.test(m)) return 'Ya existe una cuenta con ese correo.';
+  if (/Email not confirmed/i.test(m)) return 'Confirma tu correo antes de ingresar.';
+  if (/rate limit/i.test(m)) return 'Demasiados intentos. Espera unos minutos.';
+  if (/row-level security|permission denied/i.test(m)) return 'No tienes permiso para esta acción.';
+  if (/Password should be|weak/i.test(m)) return 'La contraseña es demasiado débil (mínimo 6 caracteres).';
+  if (/Failed to fetch|NetworkError/i.test(m)) return 'Sin conexión con el servidor. Revisa tu internet.';
+  return m || 'Ocurrió un error desconocido.';
+}
+
+interface WhatsAppParams {
+  number: string;
+  storeName: string;
+  currency: string;
+  customer: CustomerData;
+  items: CartItem[];
+  total: number;
+}
+
+/** Construye el enlace wa.me con el pedido ya redactado. */
+export function buildWhatsAppUrl({ number, storeName, currency, customer, items, total }: WhatsAppParams): string {
+  const lines: string[] = [
+    `🛍️ *Nuevo pedido — ${storeName}*`,
+    '',
+    `*Cliente:* ${customer.name}`,
+    `*Teléfono:* ${customer.phone}`,
+    `*Dirección:* ${customer.address}`,
+  ];
+  if (customer.notes) lines.push(`*Notas:* ${customer.notes}`);
+  lines.push('', '*Productos:*');
+  items.forEach(({ product, qty }) =>
+    lines.push(`• ${qty} x ${product.name} — ${formatMoney(product.price * qty, currency)}`)
+  );
+  lines.push('', `*Total:* ${formatMoney(total, currency)}`);
+  return `https://wa.me/${onlyDigits(number)}?text=${encodeURIComponent(lines.join('\n'))}`;
+}
