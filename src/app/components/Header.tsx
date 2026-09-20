@@ -12,6 +12,7 @@ export default function Header() {
   const { user, profile, isAdmin, signOut } = useAuth();
   const { count } = useCart();
   const { settings } = useStore();
+  const { categories } = useStore();
   const { open } = useUI();
   const toast = useToast();
 
@@ -19,6 +20,7 @@ export default function Header() {
 
   return (
     <header className="site-header">
+      <div className="top-strip"><div className="container"><span>Tecnología confiable para toda Cuba · Entregas seguras</span><span>Ayuda　 Precios en {settings.currency}</span></div></div>
       <div className="container header__inner">
         <Link href="/" className="brand">
           <img className="brand__logo" src="/electromarket-logo.svg" alt="ElectroMarketCuba" />
@@ -58,6 +60,7 @@ export default function Header() {
           )}
         </nav>
       </div>
+      <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className="category-nav__all">▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).slice(0, 6).map((category) => <Link href={`/?category=${category.id}`} key={category.id}>{category.name}</Link>)}<Link className="category-nav__offer" href="/">Ofertas</Link></div></nav>
     </header>
   );
 }

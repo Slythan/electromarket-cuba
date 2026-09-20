@@ -4,26 +4,38 @@ import { useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
+import type { Category } from '@/lib/types';
 import ProductCard from './ProductCard';
 
-export default function ProductGrid({ query = '' }: { query?: string }) {
+interface ProductGridProps {
+  query?: string;
+  categoryId?: string;
+  categories?: Category[];
+}
+
+export default function ProductGrid({ query = '', categoryId = '', categories = [] }: ProductGridProps) {
   const { products, settings, loading } = useStore();
   const { isAdmin } = useAuth();
   const cart = useCart();
 
   const q = query.trim().toLowerCase();
+  const categoryIds = useMemo(() => {
+    if (!categoryId) return null;
+    const childIds = categories.filter((category) => category.parentId === categoryId).map((category) => category.id);
+    return new Set([categoryId, ...childIds]);
+  }, [categories, categoryId]);
   const list = useMemo(
     () =>
       products.filter(
-        (p) => p.visible && (!q || `${p.name} ${p.description}`.toLowerCase().includes(q))
+        (p) => p.visible && (!categoryIds || categoryIds.has(p.categoryId ?? '')) && (!q || `${p.name} ${p.description}`.toLowerCase().includes(q))
       ),
-    [products, q]
+    [products, q, categoryIds]
   );
 
   if (loading) return <p className="muted">Cargando productos…</p>;
 
   if (!list.length) {
-    const message = q
+    const message = q || categoryId
       ? 'No encontramos productos con esa búsqueda.'
       : isAdmin
         ? 'Aún no hay productos visibles. Agrégalos desde el Panel.'

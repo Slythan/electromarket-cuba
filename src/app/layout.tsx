@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import './globals.css';
 import Providers from '@/components/Providers';
 import Header from '@/components/Header';
+import SiteFooter from '@/components/SiteFooter';
 
 export const metadata: Metadata = {
   title: 'ElectroMarketCuba',
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <Header />
           <main>{children}</main>
+          <SiteFooter />
         </Providers>
       </body>
     </html>
