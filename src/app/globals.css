@@ -169,8 +169,8 @@ h1, h2, h3 { line-height: 1.2; }
 .highlight strong { display: block; color: #26384d; font-size: 0.88rem; }
 .highlight p { margin: 4px 0 0; color: var(--muted); font-size: 0.72rem; }
 .about-band { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 54px; max-width: 1100px; margin: 0 auto 70px; padding: 0 16px; align-items: center; }
-.about-band__visual { min-height: 250px; display: grid; place-items: center; overflow: hidden; border-radius: 18px; background: linear-gradient(145deg, #d9ebfb, #f7fbff); }
-.about-band__shape { display: grid; width: 150px; height: 150px; place-items: center; border-radius: 42% 58% 55% 45%; background: var(--accent); color: #fff; font-size: 6rem; transform: rotate(-12deg); box-shadow: 25px 25px 0 #9bc9f2; }
+.about-band__visual { display: grid; aspect-ratio: 16 / 9; min-height: 0; place-items: center; overflow: hidden; border-radius: 18px; background: #f4f8fd; }
+.about-band__visual img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center; border-radius: 18px; }
 .about-band h2 { margin: 0 0 12px; color: #132942; font-size: clamp(1.7rem, 3vw, 2.5rem); letter-spacing: -0.04em; }
 .about-band p { max-width: 560px; color: var(--muted); }
 .about-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 24px; }
@@ -186,7 +186,7 @@ h1, h2, h3 { line-height: 1.2; }
 .site-footer__inner { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 42px; padding-bottom: 44px; }
 .site-footer__brand p { max-width: 260px; font-size: 0.82rem; line-height: 1.6; }
 .footer-mark { display: flex; align-items: center; gap: 9px; color: #fff; font-size: 1.25rem; }
-.footer-mark img { display: block; width: 35px; height: 35px; padding: 5px; border-radius: 10px; background: #0875ec; object-fit: contain; }
+.footer-mark img { display: block; width: 35px; height: 35px; object-fit: contain; filter: brightness(0) invert(1); }
 .site-footer h3 { margin: 0 0 14px; color: #fff; font-size: 0.8rem; }
 .site-footer a { display: block; margin: 9px 0; color: #91a5bc; font-size: 0.78rem; text-decoration: none; }
 .site-footer a:hover { color: #fff; }

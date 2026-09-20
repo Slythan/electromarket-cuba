@@ -9,14 +9,14 @@ import OrdersTab from './OrdersTab';
 import ProductsTab from './ProductTab';
 import SettingsTab from './SettingsTab';
 import BannersTab from './BannersTab';
-import CategoriesTab from './CategoriesTab';
+import CategoriesTab from '@/components/admin/CategoriesTab';
 
 type Tab = 'products' | 'orders' | 'banners' | 'categories' | 'config';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'products', label: 'Productos' },
   { id: 'orders', label: 'Pedidos' },
-  { id: 'banners', label: 'Banners' },
+  { id: 'banners', label: 'Banners' },  
   { id: 'categories', label: 'Categorías' },
   { id: 'config', label: 'Configuración' },
 ];
