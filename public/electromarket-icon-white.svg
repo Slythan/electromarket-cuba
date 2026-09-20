@@ -1,0 +1,8 @@
+<svg width="220" height="180" viewBox="0 0 220 180" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>ElectroMarket</title>
+  <path d="M18 18h16c19 0 33 11 39 31l19 63c4 12 14 20 27 20h76" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M67 59h64M148 59h54l-10 43" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M145 14h43l-28 42h31l-58 55 16-43h-25l21-54Z" fill="#fff"/>
+  <circle cx="94" cy="163" r="10" stroke="#fff" stroke-width="9"/>
+  <circle cx="187" cy="163" r="10" stroke="#fff" stroke-width="9"/>
+</svg>
