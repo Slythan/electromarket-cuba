@@ -11,6 +11,7 @@ interface CategoryDropdownProps {
 
 export default function CategoryDropdown({ categories, value, onChange }: CategoryDropdownProps) {
   const [open, setOpen] = useState(false);
+  const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
   const dropdownRef = useRef<HTMLDivElement>(null);
   const selected = categories.find((category) => category.id === value);
   const parents = useMemo(() => categories.filter((category) => !category.parentId), [categories]);
@@ -30,6 +31,15 @@ export default function CategoryDropdown({ categories, value, onChange }: Catego
       document.removeEventListener('keydown', closeOnEscape);
     };
   }, [open]);
+
+  const toggleParent = (parentId: string) => {
+    setExpandedParents((current) => {
+      const next = new Set(current);
+      if (next.has(parentId)) next.delete(parentId);
+      else next.add(parentId);
+      return next;
+    });
+  };
 
   if (!categories.length) return null;
 
@@ -64,11 +74,14 @@ export default function CategoryDropdown({ categories, value, onChange }: Catego
               const children = categories.filter((category) => category.parentId === parent.id);
               return (
                 <div className="category-group" key={parent.id}>
-                  <button type="button" className={`category-option${value === parent.id ? ' is-selected' : ''}`} onClick={() => { onChange(parent.id); setOpen(false); }}>
-                    <span className="category-option__image">{parent.imageUrl ? <img src={parent.imageUrl} alt="" /> : '◈'}</span>
-                    <strong>{parent.name}</strong>
-                  </button>
-                  {children.map((child) => (
+                  <div className={`category-option-row${value === parent.id ? ' is-selected' : ''}`}>
+                    <button type="button" className="category-option category-option--parent" onClick={() => { onChange(parent.id); setOpen(false); }}>
+                      <span className="category-option__image">{parent.imageUrl ? <img src={parent.imageUrl} alt="" /> : '◈'}</span>
+                      <strong>{parent.name}</strong>
+                    </button>
+                    {children.length > 0 && <button type="button" className="category-group__toggle" aria-label={`${(expandedParents.has(parent.id) || children.some((child) => child.id === value)) ? 'Ocultar' : 'Mostrar'} subcategorías de ${parent.name}`} aria-expanded={expandedParents.has(parent.id) || children.some((child) => child.id === value)} onClick={() => toggleParent(parent.id)}>{expandedParents.has(parent.id) || children.some((child) => child.id === value) ? '⌄' : '›'}</button>}
+                  </div>
+                  {(expandedParents.has(parent.id) || children.some((child) => child.id === value)) && children.map((child) => (
                     <button type="button" className={`category-option category-option--child${value === child.id ? ' is-selected' : ''}`} key={child.id} onClick={() => { onChange(child.id); setOpen(false); }}>
                       <span className="category-option__image">{child.imageUrl ? <img src={child.imageUrl} alt="" /> : '◈'}</span>
                       <span>{child.name}</span>

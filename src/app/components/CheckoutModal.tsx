@@ -19,8 +19,15 @@ export default function CheckoutModal() {
   const { submit, whatsappReady } = useCheckout();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [negotiatedInput, setNegotiatedInput] = useState('');
+  const [deliveryInput, setDeliveryInput] = useState('0');
 
   const money = (n: number) => formatMoney(n, settings.currency);
+  const isManager = profile?.role === 'manager';
+  const negotiatedPreview = Number(negotiatedInput.replace(',', '.')) || 0;
+  const deliveryPreview = Number(deliveryInput.replace(',', '.')) || 0;
+  const commissionBasePreview = Math.max(0, total - negotiatedPreview);
+  const commissionPreview = commissionBasePreview - deliveryPreview;
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -30,6 +37,8 @@ export default function CheckoutModal() {
       phone: String(f.get('phone') ?? '').trim(),
       address: String(f.get('address') ?? '').trim(),
       notes: String(f.get('notes') ?? '').trim(),
+      negotiatedTotal: Number(String(f.get('negotiatedTotal') ?? '').replace(',', '.')),
+      deliveryFee: Number(String(f.get('deliveryFee') ?? '0').replace(',', '.')),
     };
     setBusy(true);
     setError('');
@@ -61,8 +70,8 @@ export default function CheckoutModal() {
 
       {/* key: si el perfil llega después, el formulario se rellena con sus datos */}
       <form className="form" onSubmit={onSubmit} key={profile?.id ?? 'anon'}>
-        <Field label="Nombre">
-          <input className="input" type="text" name="name" maxLength={60} defaultValue={profile?.name ?? ''} required />
+        <Field label={isManager ? 'Nombre del cliente' : 'Nombre'}>
+          <input className="input" type="text" name="name" maxLength={60} defaultValue={isManager ? '' : profile?.name ?? ''} placeholder={isManager ? 'Nombre de la persona que recibe' : 'Nombre completo'} required />
         </Field>
         <Field label="Teléfono de contacto">
           <input className="input" type="tel" name="phone" defaultValue={profile?.phone ?? ''} required />
@@ -77,6 +86,19 @@ export default function CheckoutModal() {
             required
           />
         </Field>
+        {isManager && <>
+          <div className="two-col">
+            <Field label={`Precio negociado (${settings.currency})`}>
+              <input className="input" type="text" name="negotiatedTotal" inputMode="decimal" placeholder={money(total)} value={negotiatedInput} onChange={(event) => setNegotiatedInput(event.target.value)} required />
+              <small className="field__hint">Precio final acordado con el cliente.</small>
+            </Field>
+            <Field label={`Mensajería (${settings.currency})`}>
+              <input className="input" type="text" name="deliveryFee" inputMode="decimal" placeholder="0.00" value={deliveryInput} onChange={(event) => setDeliveryInput(event.target.value)} required />
+              <small className="field__hint">Se resta de la comisión base.</small>
+            </Field>
+          </div>
+          <div className="note checkout-commission"><strong>Gestor: {profile.name}</strong><div className="sumline"><span>Precio de catálogo</span><span>{money(total)}</span></div><div className="sumline"><span>Precio negociado</span><span>{money(negotiatedPreview)}</span></div><div className="sumline"><span>Comisión base</span><span>{money(commissionBasePreview)}</span></div><div className="sumline"><span>Mensajería</span><span>- {money(deliveryPreview)}</span></div><div className="sumline sumline--total"><b>Comisión final</b><b>{money(commissionPreview)}</b></div></div>
+        </>}
         <Field label="Notas (opcional)">
           <input className="input" type="text" name="notes" maxLength={160} placeholder="Horario, referencias…" />
         </Field>

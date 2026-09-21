@@ -51,6 +51,11 @@ interface OrderRow {
   notes: string | null;
   items: OrderItem[] | null;
   total: number | string;
+  negotiated_total?: number | string | null;
+  commission_base?: number | string | null;
+  delivery_fee?: number | string | null;
+  commission?: number | string | null;
+  manager_name?: string | null;
   status: string;
   created_at: string;
 }
@@ -110,6 +115,11 @@ export const mapOrder = (r: OrderRow): Order => ({
   notes: r.notes ?? '',
   items: Array.isArray(r.items) ? r.items : [],
   total: Number(r.total),
+  negotiatedTotal: r.negotiated_total == null ? null : Number(r.negotiated_total),
+  commissionBase: r.commission_base == null ? null : Number(r.commission_base),
+  deliveryFee: r.delivery_fee == null ? null : Number(r.delivery_fee),
+  commission: r.commission == null ? null : Number(r.commission),
+  managerName: r.manager_name ?? null,
   status: r.status as OrderStatus,
   createdAt: r.created_at,
 });

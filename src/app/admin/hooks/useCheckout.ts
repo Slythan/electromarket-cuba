@@ -14,7 +14,7 @@ import type { CustomerData } from '@/lib/types';
  * y abre WhatsApp con el mensaje listo.
  */
 export function useCheckout() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { items, total, clear } = useCart();
   const { settings, reloadProducts } = useStore();
   const { open, setDone } = useUI();
@@ -30,7 +30,16 @@ export function useCheckout() {
         return 'Nombre, teléfono y dirección son obligatorios.';
       if (!items.length) return 'Tu carrito está vacío.';
 
-      const orderTotal = Math.round(total * 100) / 100;
+      const catalogTotal = Math.round(total * 100) / 100;
+      const isManager = profile?.role === 'manager';
+      const negotiatedTotal = isManager ? Math.round((customer.negotiatedTotal ?? 0) * 100) / 100 : catalogTotal;
+      const deliveryFee = isManager ? Math.round((customer.deliveryFee ?? 0) * 100) / 100 : 0;
+      if (isManager && (!Number.isFinite(negotiatedTotal) || negotiatedTotal <= 0)) return 'El precio negociado debe ser mayor que cero.';
+      if (isManager && (!Number.isFinite(deliveryFee) || deliveryFee < 0)) return 'La mensajería no puede ser negativa.';
+      if (isManager && negotiatedTotal > catalogTotal) return 'El precio negociado no puede superar el precio de catálogo.';
+      const commissionBase = Math.round((catalogTotal - negotiatedTotal) * 100) / 100;
+      const commission = Math.round((commissionBase - deliveryFee) * 100) / 100;
+      const orderTotal = negotiatedTotal;
 
       // La pestaña de WhatsApp se abre ahora (gesto del usuario) para que el navegador no la bloquee.
       let popup: Window | null = null;
@@ -47,6 +56,12 @@ export function useCheckout() {
         customer,
         items,
         total: orderTotal,
+        managerName: isManager ? profile?.name : undefined,
+        catalogTotal: isManager ? catalogTotal : undefined,
+        negotiatedTotal: isManager ? negotiatedTotal : undefined,
+        commissionBase: isManager ? commissionBase : undefined,
+        deliveryFee: isManager ? deliveryFee : undefined,
+        commission: isManager ? commission : undefined,
       });
 
       let saved = true;
@@ -61,6 +76,11 @@ export function useCheckout() {
             qty,
           })),
           total: orderTotal,
+          negotiatedTotal: isManager ? negotiatedTotal : null,
+          commissionBase: isManager ? commissionBase : null,
+          deliveryFee: isManager ? deliveryFee : null,
+          commission: isManager ? commission : null,
+          managerName: isManager ? profile?.name ?? null : null,
         });
       } catch {
         saved = false;
@@ -80,7 +100,7 @@ export function useCheckout() {
       await reloadProducts(); // refleja el stock descontado
       return null;
     },
-    [whatsappReady, user, items, total, settings, clear, setDone, open, reloadProducts]
+    [whatsappReady, user, profile, items, total, settings, clear, setDone, open, reloadProducts]
   );
 
   return { submit, whatsappReady };

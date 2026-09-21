@@ -24,9 +24,14 @@ interface CreateOrderInput {
   customer: CustomerData;
   items: OrderItem[];
   total: number;
+  negotiatedTotal?: number | null;
+  commissionBase?: number | null;
+  deliveryFee?: number | null;
+  commission?: number | null;
+  managerName?: string | null;
 }
 
-export async function createOrder({ userId, customer, items, total }: CreateOrderInput): Promise<void> {
+export async function createOrder({ userId, customer, items, total, negotiatedTotal, commissionBase, deliveryFee, commission, managerName }: CreateOrderInput): Promise<void> {
   const { error } = await supabase.from('orders').insert({
     user_id: userId,
     customer_name: customer.name,
@@ -35,6 +40,11 @@ export async function createOrder({ userId, customer, items, total }: CreateOrde
     notes: customer.notes,
     items,
     total,
+    negotiated_total: negotiatedTotal ?? null,
+    commission_base: commissionBase ?? null,
+    delivery_fee: deliveryFee ?? null,
+    commission: commission ?? null,
+    manager_name: managerName ?? null,
   });
   if (error) throw new Error(error.message);
 }

@@ -50,6 +50,7 @@ export interface OrderItem {
   name: string;
   price: number;
   qty: number;
+  negotiatedPrice?: number;
 }
 
 export const ORDER_STATUSES = ['nuevo', 'confirmado', 'entregado', 'cancelado'] as const;
@@ -63,6 +64,11 @@ export interface Order {
   notes: string;
   items: OrderItem[];
   total: number;
+  negotiatedTotal?: number | null;
+  commissionBase?: number | null;
+  deliveryFee?: number | null;
+  commission?: number | null;
+  managerName?: string | null;
   status: OrderStatus;
   createdAt: string;
 }
@@ -82,6 +88,8 @@ export interface CustomerData {
   phone: string;
   address: string;
   notes: string;
+  negotiatedTotal?: number;
+  deliveryFee?: number;
 }
 
 export interface Banner {
