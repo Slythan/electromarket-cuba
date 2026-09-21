@@ -14,6 +14,9 @@ alter table public.orders add column if not exists commission numeric;
 alter table public.orders add column if not exists manager_name text;
 
 alter table public.orders enable row level security;
+drop policy if exists "usuario crea sus pedidos" on public.orders;
+create policy "usuario crea sus pedidos" on public.orders
+	for insert to authenticated with check (user_id = auth.uid());
 drop policy if exists "admin actualiza pedidos" on public.orders;
 create policy "admin actualiza pedidos" on public.orders
 	for update to authenticated using (public.is_admin()) with check (public.is_admin());

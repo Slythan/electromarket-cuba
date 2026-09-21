@@ -65,6 +65,7 @@ export function useCheckout() {
       });
 
       let saved = true;
+      let saveError = '';
       try {
         await createOrder({
           userId: user.id,
@@ -82,8 +83,9 @@ export function useCheckout() {
           commission: isManager ? commission : null,
           managerName: isManager ? profile?.name ?? null : null,
         });
-      } catch {
+      } catch (error) {
         saved = false;
+        saveError = error instanceof Error ? error.message : '';
       }
 
       if (popup) {
@@ -98,7 +100,7 @@ export function useCheckout() {
       setDone({ url, saved });
       open('done');
       await reloadProducts(); // refleja el stock descontado
-      return null;
+      return saved ? null : `WhatsApp está listo, pero el pedido no se guardó: ${saveError || 'revisa las políticas de orders en Supabase.'}`;
     },
     [whatsappReady, user, profile, items, total, settings, clear, setDone, open, reloadProducts]
   );
