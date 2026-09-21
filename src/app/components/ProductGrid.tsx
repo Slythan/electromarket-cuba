@@ -11,9 +11,10 @@ interface ProductGridProps {
   query?: string;
   categoryId?: string;
   categories?: Category[];
+  includeChildren?: boolean;
 }
 
-export default function ProductGrid({ query = '', categoryId = '', categories = [] }: ProductGridProps) {
+export default function ProductGrid({ query = '', categoryId = '', categories = [], includeChildren = true }: ProductGridProps) {
   const { products, settings, loading } = useStore();
   const { isAdmin, profile } = useAuth();
   const cart = useCart();
@@ -21,9 +22,9 @@ export default function ProductGrid({ query = '', categoryId = '', categories = 
   const q = query.trim().toLowerCase();
   const categoryIds = useMemo(() => {
     if (!categoryId) return null;
-    const childIds = categories.filter((category) => category.parentId === categoryId).map((category) => category.id);
+    const childIds = includeChildren ? categories.filter((category) => category.parentId === categoryId).map((category) => category.id) : [];
     return new Set([categoryId, ...childIds]);
-  }, [categories, categoryId]);
+  }, [categories, categoryId, includeChildren]);
   const list = useMemo(
     () =>
       products.filter(
