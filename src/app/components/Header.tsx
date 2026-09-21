@@ -43,7 +43,8 @@ export default function Header() {
   };
 
   return (
-    <header className="site-header">
+    <>
+      <header className="site-header">
       <div className="top-strip"><div className="container"><span>Tecnología confiable para toda Cuba · Entregas seguras</span><span>Ayuda　 Precios en {settings.currency}</span></div></div>
       <div className="container header__inner">
         <Link href="/" className="brand">
@@ -86,6 +87,7 @@ export default function Header() {
           )}
         </nav>
       </div>
+      </header>
       <nav className="main-nav" aria-label="Navegación principal">
         <div className="container main-nav__inner">
           <Link href="/" className={navLink(isStoreRoute)} aria-current={isStoreRoute ? 'page' : undefined}>Tienda</Link>
@@ -98,6 +100,6 @@ export default function Header() {
         const isActive = selectedCategoryId === category.id || categories.some((child) => child.id === selectedCategoryId && child.parentId === category.id);
         return <Link href={`/categorias/${category.id}`} className={isActive ? 'is-active' : ''} aria-current={isActive ? 'page' : undefined} key={category.id}>{category.name}</Link>;
       })}<Link className="category-nav__offer" href="/#catalogo">Ofertas</Link></div></nav>}
-    </header>
+    </>
   );
 }
