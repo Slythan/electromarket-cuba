@@ -28,13 +28,6 @@ export default function Header() {
         </Link>
 
         <nav className="nav">
-          {isAdmin && (
-            <Link href="/admin" className="btn btn--ghost btn--sm">
-              Panel
-            </Link>
-          )}
-          {user && <Link href="/account" className="btn btn--ghost btn--sm">Mi cuenta</Link>}
-
           <button type="button" className="btn btn--ghost cart-btn" onClick={() => open('cart')} aria-label="Abrir carrito">
             🛒
             {count > 0 && <span className="badge">{count}</span>}
@@ -61,6 +54,14 @@ export default function Header() {
           )}
         </nav>
       </div>
+      <nav className="main-nav" aria-label="Navegación principal">
+        <div className="container main-nav__inner">
+          <Link href="/" className="main-nav__link">Tienda</Link>
+          {user && <Link href="/orders" className="main-nav__link">Órdenes</Link>}
+          {user && <Link href="/account" className="main-nav__link">Cuenta</Link>}
+          {isAdmin && <Link href="/admin" className="main-nav__link main-nav__link--admin">Panel Admin</Link>}
+        </div>
+      </nav>
       <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className="category-nav__all">▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).slice(0, 6).map((category) => <Link href={`/?category=${category.id}`} key={category.id}>{category.name}</Link>)}<Link className="category-nav__offer" href="/">Ofertas</Link></div></nav>
     </header>
   );
