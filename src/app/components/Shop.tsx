@@ -1,22 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useStore } from '@/context/StoreContext';
 import ProductGrid from './ProductGrid';
 import HeroCarousel from './HeroCarousel';
 import CategoryShowcase from './CategoryShowcase';
-import CategoryDropdown from './CategoryDropdown';
 import StoreHighlights from './StoreHighlights';
 
 export default function Shop() {
   const { settings, banners, categories } = useStore();
-  const router = useRouter();
-  const [query, setQuery] = useState('');
-
-  const selectCategory = (nextCategoryId: string) => {
-    router.push(nextCategoryId ? `/categorias/${nextCategoryId}` : '/#catalogo');
-  };
+  const searchParams = useSearchParams();
+  const query = searchParams.get('q') ?? '';
 
   return (
     <div className="container">
@@ -33,21 +27,6 @@ export default function Shop() {
       <HeroCarousel banners={banners} />
 
       <div id="categorias"><CategoryShowcase categories={categories} /></div>
-
-      <div className="catalog-tools">
-        <CategoryDropdown categories={categories} value="" onChange={selectCategory} />
-        <div className="searchbar">
-          <span className="searchbar__icon" aria-hidden="true">⌕</span>
-          <input
-            className="input"
-            type="search"
-            placeholder="Buscar productos…"
-            aria-label="Buscar productos"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
-      </div>
 
       <section id="catalogo" className="catalog-section"><div className="catalog-section__heading"><div><span className="eyebrow">SELECCIÓN ELECTROMARKET</span><h2>Productos destacados</h2></div><span className="catalog-section__arrow">Ver destacados　→</span></div><ProductGrid query={query} /></section>
       {categories.length === 0 && <div className="empty storefront-empty">El catálogo se está preparando. Pronto tendremos productos disponibles.</div>}

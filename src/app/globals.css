@@ -76,6 +76,10 @@ h1, h2, h3 { line-height: 1.2; }
 }
 .brand__logo { display: block; flex: none; width: 250px; height: 50px; object-fit: contain; object-position: left center; }
 .brand__name { display: none; }
+.header__tools { display: flex; flex: 1; align-items: center; gap: 12px; min-width: 0; max-width: 760px; }
+.header__tools .category-dropdown { flex: 0 1 280px; min-width: 220px; }
+.header__search { flex: 1; min-width: 180px; margin: 0; }
+.header__search .input { min-height: 56px; }
 .nav { display: flex; align-items: center; gap: 6px; }
 .who { font-size: 0.9rem; color: var(--muted); }
 .main-nav { border-top: 1px solid #edf1f6; background: #fff; }
@@ -395,6 +399,10 @@ textarea.input { resize: vertical; min-height: 80px; }
 @media (max-width: 560px) {
   .brand__logo { width: 190px; height: 42px; }
   .header__inner { min-height: 64px; gap: 8px; }
+  .header__inner { flex-wrap: wrap; padding-bottom: 10px; }
+  .header__tools { order: 3; flex-basis: 100%; max-width: none; }
+  .header__tools .category-dropdown { min-width: 0; flex-basis: 42%; }
+  .header__search .input { min-height: 48px; }
   .main-nav__inner { gap: 8px; min-height: 54px; }
   .main-nav__link { min-height: 36px; padding: 8px 13px; font-size: 0.78rem; }
   .top-strip .container { font-size: 0.62rem; }

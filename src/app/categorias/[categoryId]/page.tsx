@@ -1,15 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useParams, useSearchParams } from 'next/navigation';
 import ProductGrid from '@/components/ProductGrid';
 import { useStore } from '@/context/StoreContext';
 
 export default function CategoryPage() {
   const params = useParams<{ categoryId: string }>();
   const { categories, loading } = useStore();
-  const [query, setQuery] = useState('');
+  const searchParams = useSearchParams();
+  const query = searchParams.get('q') ?? '';
   const category = categories.find((item) => item.id === params.categoryId);
   const children = categories.filter((item) => item.parentId === category?.id);
 
@@ -30,10 +30,7 @@ export default function CategoryPage() {
           {children.length > 0 && <p className="muted">Incluye: {children.map((child) => child.name).join(', ')}</p>}
         </div>
       </header>
-      <div className="category-page__tools">
-        <div><span className="eyebrow">CATÁLOGO</span><h2>Productos de {category.name}</h2></div>
-        <div className="searchbar"><span className="searchbar__icon" aria-hidden="true">⌕</span><input className="input" type="search" placeholder="Buscar en esta categoría…" aria-label={`Buscar en ${category.name}`} value={query} onChange={(event) => setQuery(event.target.value)} /></div>
-      </div>
+      <div className="category-page__tools"><div><span className="eyebrow">CATÁLOGO</span><h2>Productos de {category.name}</h2></div></div>
       <ProductGrid query={query} categoryId={category.id} categories={categories} />
     </div>
   );

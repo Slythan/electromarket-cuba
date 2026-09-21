@@ -1,13 +1,15 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import { useUI } from '@/context/UIContext';
 import Button from './ui/Button';
+import CategoryDropdown from './CategoryDropdown';
 
 export default function Header() {
   const { user, profile, isAdmin, signOut } = useAuth();
@@ -17,11 +19,28 @@ export default function Header() {
   const { open } = useUI();
   const toast = useToast();
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const selectedCategoryId = pathname.startsWith('/categorias/') ? pathname.split('/')[2] : '';
   const isStoreRoute = pathname === '/' || pathname.startsWith('/categorias/');
+  const showStoreTools = !pathname.startsWith('/admin');
 
   const firstName = (profile?.name || user?.email || '').split(' ')[0];
   const navLink = (matches: boolean, extraClass = '') => `main-nav__link${matches ? ' is-active' : ''}${extraClass ? ` ${extraClass}` : ''}`;
+  const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const params = new URLSearchParams();
+    if (query.trim()) params.set('q', query.trim());
+    const target = selectedCategoryId ? `/categorias/${selectedCategoryId}` : '/';
+    router.push(`${target}${params.toString() ? `?${params.toString()}` : ''}#catalogo`);
+  };
+
+  const selectCategory = (categoryId: string) => {
+    const target = categoryId ? `/categorias/${categoryId}` : '/';
+    const queryParam = query.trim() ? `?q=${encodeURIComponent(query.trim())}` : '';
+    router.push(`${target}${queryParam}#catalogo`);
+  };
 
   return (
     <header className="site-header">
@@ -31,6 +50,14 @@ export default function Header() {
           <img className="brand__logo" src="/electromarket-logo.svg" alt="ElectroMarketCuba" />
           <span className="brand__name">{settings.storeName}</span>
         </Link>
+
+        {showStoreTools && <div className="header__tools">
+          <CategoryDropdown categories={categories} value={selectedCategoryId} onChange={selectCategory} />
+          <form className="header__search searchbar" onSubmit={submitSearch}>
+            <span className="searchbar__icon" aria-hidden="true">⌕</span>
+            <input className="input" type="search" placeholder="Buscar productos…" aria-label="Buscar productos" value={query} onChange={(event) => setQuery(event.target.value)} />
+          </form>
+        </div>}
 
         <nav className="nav">
           <button type="button" className="btn btn--ghost cart-btn" onClick={() => open('cart')} aria-label="Abrir carrito">
