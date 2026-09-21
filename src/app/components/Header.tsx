@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
@@ -17,8 +17,8 @@ export default function Header() {
   const { open } = useUI();
   const toast = useToast();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const selectedCategoryId = searchParams.get('category') ?? '';
+  const selectedCategoryId = pathname.startsWith('/categorias/') ? pathname.split('/')[2] : '';
+  const isStoreRoute = pathname === '/' || pathname.startsWith('/categorias/');
 
   const firstName = (profile?.name || user?.email || '').split(' ')[0];
   const navLink = (matches: boolean, extraClass = '') => `main-nav__link${matches ? ' is-active' : ''}${extraClass ? ` ${extraClass}` : ''}`;
@@ -61,15 +61,15 @@ export default function Header() {
       </div>
       <nav className="main-nav" aria-label="Navegación principal">
         <div className="container main-nav__inner">
-          <Link href="/" className={navLink(pathname === '/') } aria-current={pathname === '/' ? 'page' : undefined}>Tienda</Link>
+          <Link href="/" className={navLink(isStoreRoute)} aria-current={isStoreRoute ? 'page' : undefined}>Tienda</Link>
           {user && <Link href="/orders" className={navLink(pathname.startsWith('/orders'))} aria-current={pathname.startsWith('/orders') ? 'page' : undefined}>Órdenes</Link>}
           {user && <Link href="/account" className={navLink(pathname.startsWith('/account'))} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>Cuenta</Link>}
           {isAdmin && <Link href="/admin" className={navLink(pathname.startsWith('/admin'), 'main-nav__link--admin')} aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>Panel Admin</Link>}
         </div>
       </nav>
-      {!pathname.startsWith('/admin') && <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className={`category-nav__all${!selectedCategoryId ? ' is-active' : ''}`} aria-current={!selectedCategoryId ? 'page' : undefined}>▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).slice(0, 6).map((category) => {
+      {isStoreRoute && <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className={`category-nav__all${!selectedCategoryId ? ' is-active' : ''}`} aria-current={!selectedCategoryId ? 'page' : undefined}>▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).slice(0, 6).map((category) => {
         const isActive = selectedCategoryId === category.id || categories.some((child) => child.id === selectedCategoryId && child.parentId === category.id);
-        return <Link href={`/?category=${category.id}#catalogo`} className={isActive ? 'is-active' : ''} aria-current={isActive ? 'page' : undefined} key={category.id}>{category.name}</Link>;
+        return <Link href={`/categorias/${category.id}`} className={isActive ? 'is-active' : ''} aria-current={isActive ? 'page' : undefined} key={category.id}>{category.name}</Link>;
       })}<Link className="category-nav__offer" href="/#catalogo">Ofertas</Link></div></nav>}
     </header>
   );

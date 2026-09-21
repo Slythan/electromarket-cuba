@@ -24,6 +24,17 @@ export async function fetchProducts(): Promise<Product[]> {
   return ((data ?? []) as ProductRow[]).map(mapProduct);
 }
 
+export async function fetchProductsByCategoryIds(categoryIds: string[]): Promise<Product[]> {
+  if (!categoryIds.length) return [];
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .in('category_id', categoryIds)
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as ProductRow[]).map(mapProduct);
+}
+
 /** Crea el producto, o lo actualiza si se pasa `id`. */
 export async function saveProduct(input: ProductInput, id?: string): Promise<void> {
   const row = {

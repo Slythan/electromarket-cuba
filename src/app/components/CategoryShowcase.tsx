@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import type { Category } from '@/lib/types';
 
-export default function CategoryShowcase({ categories, activeCategoryId }: { categories: Category[]; activeCategoryId: string }) {
+export default function CategoryShowcase({ categories }: { categories: Category[] }) {
   const parents = useMemo(() => categories.filter((category) => !category.parentId), [categories]);
   if (!parents.length) return null;
 
@@ -14,9 +14,8 @@ export default function CategoryShowcase({ categories, activeCategoryId }: { cat
       <div className="category-grid">
         {parents.map((parent) => {
           const children = categories.filter((category) => category.parentId === parent.id);
-          const isActive = activeCategoryId === parent.id || children.some((child) => child.id === activeCategoryId);
           return (
-            <Link className={`category-card${isActive ? ' is-active' : ''}`} href={`/?category=${parent.id}#catalogo`} key={parent.id} aria-current={isActive ? 'page' : undefined}>
+            <Link className="category-card" href={`/categorias/${parent.id}`} key={parent.id}>
               <div className="category-card__image">{parent.imageUrl ? <img src={parent.imageUrl} alt={parent.name} /> : <span aria-hidden="true">◈</span>}</div>
               <div className="category-card__body"><h3>{parent.name}</h3>{children.length > 0 && <div className="subcategory-list">{children.map((child) => <span key={child.id}>{child.name}</span>)}</div>}</div>
             </Link>

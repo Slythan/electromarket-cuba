@@ -141,6 +141,15 @@ h1, h2, h3 { line-height: 1.2; }
 .hero-carousel__dots button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: #a8bfd5; }
 .hero-carousel__dots button.is-active { width: 20px; border-radius: 99px; background: var(--accent); }
 .category-showcase { margin: 34px 0 28px; }
+.category-page { padding-top: 34px; padding-bottom: 60px; }
+.category-page__header { display: flex; align-items: center; gap: 18px; margin: 18px 0 34px; padding: 22px; border: 1px solid #cfe1f3; border-radius: 16px; background: linear-gradient(115deg, #eaf4fc, #ffffff 65%); }
+.category-page__header h1 { margin: 0; color: #132942; font-size: clamp(2rem, 5vw, 3.4rem); letter-spacing: -0.04em; }
+.category-page__header p { margin: 7px 0 0; }
+.category-page__image { display: grid; flex: none; width: 112px; height: 112px; place-items: center; overflow: hidden; border-radius: 12px; background: var(--surface-2); color: var(--accent); font-size: 2.5rem; }
+.category-page__image img { width: 100%; height: 100%; object-fit: cover; }
+.category-page__tools { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 420px); align-items: end; gap: 20px; margin-bottom: 14px; }
+.category-page__tools h2 { margin: 0; color: #132942; font-size: clamp(1.5rem, 3vw, 2.2rem); }
+.category-page__tools .searchbar { margin: 0; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; margin-bottom: 14px; }
 .section-heading h2 { margin: 0; color: #1f2b38; font-size: 1.45rem; letter-spacing: -0.03em; }
 .category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
@@ -398,6 +407,9 @@ textarea.input { resize: vertical; min-height: 80px; }
   .hero--storefront::after { right: -110px; bottom: -70px; width: 260px; height: 260px; }
   .hero__actions .btn { width: 100%; }
   .catalog-tools { grid-template-columns: 1fr; gap: 10px; }
+  .category-page__header { align-items: flex-start; flex-direction: column; margin-top: 10px; padding: 18px; }
+  .category-page__image { width: 86px; height: 86px; }
+  .category-page__tools { grid-template-columns: 1fr; gap: 10px; }
   .hero-carousel { min-height: 0; }
   .hero-carousel__slide { grid-template-columns: 1fr; min-height: 0; }
   .hero-carousel__image-wrap, .hero-carousel__image { min-height: 170px; height: 170px; }

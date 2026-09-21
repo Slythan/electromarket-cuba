@@ -1,8 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
-import { fetchProducts } from '@/services/products';
+import { fetchProducts, fetchProductsByCategoryIds } from '@/services/products';
 import { fetchBanners } from '@/services/banners';
 import { fetchCategories } from '@/services/categories';
 import { DEFAULT_SETTINGS, fetchSettings } from '@/services/settings';
@@ -30,11 +31,13 @@ export function useStore(): StoreState {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
+  const pathname = usePathname();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const categoryRouteId = pathname.startsWith('/categorias/') ? pathname.split('/')[2] : '';
 
   const reloadProducts = useCallback(async () => {
     try {
@@ -70,8 +73,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return;
     let active = true;
-    Promise.all([fetchSettings(), fetchProducts().catch(() => null), fetchBanners().catch(() => null), fetchCategories().catch(() => null)])
-      .then(([s, p, b, c]) => {
+    const isHomeRoute = pathname === '/';
+    Promise.all([fetchSettings(), isHomeRoute ? fetchBanners().catch(() => null) : Promise.resolve(null), fetchCategories().catch(() => null)])
+      .then(async ([s, b, c]) => {
+        if (!active) return;
+        const categoryIds = categoryRouteId
+          ? [categoryRouteId, ...(c ?? []).filter((category) => category.parentId === categoryRouteId).map((category) => category.id)]
+          : null;
+        const p = await (categoryIds ? fetchProductsByCategoryIds(categoryIds) : fetchProducts()).catch(() => null);
         if (!active) return;
         setSettings(s);
         if (p) setProducts(p);
@@ -82,7 +91,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [authLoading, userId]);
+  }, [authLoading, categoryRouteId, pathname, userId]);
 
   useEffect(() => {
     document.title = settings.storeName;
