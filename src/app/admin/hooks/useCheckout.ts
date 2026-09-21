@@ -102,7 +102,7 @@ export function useCheckout() {
       }
 
       clear();
-      setDone({ url, saved });
+      setDone({ url, saved, error: saveError || undefined });
       open('done');
       await reloadProducts(); // refleja el stock descontado
       return null;

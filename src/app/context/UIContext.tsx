@@ -10,6 +10,7 @@ export interface DoneInfo {
   url: string;
   /** false si el pedido no pudo guardarse en la base de datos */
   saved: boolean;
+  error?: string;
 }
 
 interface OpenOptions {

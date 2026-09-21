@@ -17,10 +17,11 @@ export default function OrderDone() {
           Se abrió WhatsApp con el detalle de tu pedido. Envía el mensaje para confirmarlo con la tienda.
         </p>
         {!done.saved && (
-          <p className="warn">
+          <div className="warn">
             No pudimos registrar el pedido en el sistema, pero el mensaje de WhatsApp sí está listo. Envíalo para que la
             tienda lo reciba.
-          </p>
+            {done.error && <><br /><strong>Detalle técnico:</strong> {done.error}</>}
+          </div>
         )}
         <a className="btn btn--primary btn--block" href={done.url} target="_blank" rel="noopener noreferrer">
           Abrir WhatsApp de nuevo

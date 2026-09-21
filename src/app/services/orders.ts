@@ -32,7 +32,7 @@ interface CreateOrderInput {
 }
 
 export async function createOrder({ userId, customer, items, total, negotiatedTotal, commissionBase, deliveryFee, commission, managerName }: CreateOrderInput): Promise<void> {
-  const { data, error } = await supabase.from('orders').insert({
+  const { error } = await supabase.from('orders').insert({
     user_id: userId,
     customer_name: customer.name,
     phone: customer.phone,
@@ -46,9 +46,8 @@ export async function createOrder({ userId, customer, items, total, negotiatedTo
     delivery_fee: deliveryFee ?? null,
     commission: commission ?? null,
     manager_name: managerName ?? null,
-  }).select('id, user_id').single();
+  });
   if (error) throw new Error(error.message);
-  if (!data || data.user_id !== userId) throw new Error('Supabase no confirmó la creación del pedido para este usuario.');
 }
 
 export async function updateOrder(id: string, input: Partial<Pick<Order, 'customerName' | 'phone' | 'address' | 'notes' | 'total' | 'negotiatedTotal' | 'commissionBase' | 'deliveryFee' | 'commission'>>): Promise<void> {
