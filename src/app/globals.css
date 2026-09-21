@@ -120,18 +120,18 @@ h1, h2, h3 { line-height: 1.2; }
 .catalog-section__heading h2 { margin: 0; color: #132942; font-size: clamp(1.7rem, 3vw, 2.3rem); letter-spacing: -0.04em; }
 .catalog-section__arrow { color: var(--accent); font-size: 0.85rem; font-weight: 700; }
 .catalog-section .grid { padding-top: 8px; }
-.hero-carousel { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 300px; margin: 24px 0; overflow: hidden; border: 1px solid #111421; border-radius: 18px; background: #0a0b16; box-shadow: 0 20px 45px rgba(8, 16, 32, 0.18); }
-.hero-carousel__image-wrap { order: 2; min-height: 300px; background: #dcecf9; animation: banner-slide-in 0.72s cubic-bezier(0.22, 0.72, 0.22, 1) both; }
+.hero-carousel { position: relative; min-height: 300px; margin: 24px 0; overflow: hidden; border: 1px solid #111421; border-radius: 18px; background: #0a0b16; box-shadow: 0 20px 45px rgba(8, 16, 32, 0.18); }
+.hero-carousel__track { display: flex; width: 100%; transition: transform 0.9s cubic-bezier(0.22, 0.72, 0.22, 1); will-change: transform; }
+.hero-carousel__slide { display: grid; flex: 0 0 100%; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 300px; }
+.hero-carousel__image-wrap { order: 2; min-height: 300px; background: #dcecf9; }
 .hero-carousel__image { display: block; width: 100%; height: 100%; min-height: 220px; object-fit: cover; }
-.hero-carousel__copy { position: relative; order: 1; display: flex; flex-direction: column; justify-content: center; padding: clamp(28px, 5vw, 58px); background: radial-gradient(circle at 75% 20%, color-mix(in srgb, var(--banner-accent) 13%, transparent), transparent 34%), #0a0b16; font-family: var(--banner-font); animation: banner-copy-slide-in 0.72s cubic-bezier(0.22, 0.72, 0.22, 1) both; }
+.hero-carousel__copy { position: relative; order: 1; display: flex; flex-direction: column; justify-content: center; padding: clamp(28px, 5vw, 58px); background: radial-gradient(circle at 75% 20%, color-mix(in srgb, var(--banner-accent) 13%, transparent), transparent 34%), #0a0b16; font-family: var(--banner-font); }
 .hero-carousel__copy h2 { max-width: 520px; margin: 12px 0 14px; color: var(--banner-title); font-size: clamp(2rem, 4vw, 4.2rem); font-weight: 900; line-height: 0.98; letter-spacing: -0.04em; }
 .hero-carousel__copy p { max-width: 500px; margin: 0; color: var(--banner-subtitle); font-family: 'Avenir Next', Avenir, 'Segoe UI', sans-serif; font-size: clamp(0.92rem, 1.5vw, 1.1rem); line-height: 1.65; }
 .hero-carousel__label { display: inline-flex; align-self: flex-start; padding: 7px 13px; border: 1px solid color-mix(in srgb, var(--banner-accent) 50%, transparent); border-radius: 5px; color: var(--banner-accent); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
 .hero-carousel__line { width: 72px; height: 3px; margin-top: 28px; background: var(--banner-accent); box-shadow: 0 0 18px color-mix(in srgb, var(--banner-accent) 60%, transparent); }
-@keyframes banner-slide-in { from { opacity: 0.35; transform: translateX(42px); } to { opacity: 1; transform: translateX(0); } }
-@keyframes banner-copy-slide-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
 @media (prefers-reduced-motion: reduce) {
-  .hero-carousel__image-wrap, .hero-carousel__copy { animation: none; }
+  .hero-carousel__track { transition: none; }
 }
 .hero-carousel__controls { position: absolute; right: 18px; bottom: 16px; display: flex; align-items: center; gap: 10px; }
 .hero-carousel__controls > button { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 50%; background: rgba(255, 255, 255, 0.9); color: var(--text); font-size: 1.25rem; line-height: 1; }
@@ -394,7 +394,8 @@ textarea.input { resize: vertical; min-height: 80px; }
   .hero--storefront::after { right: -110px; bottom: -70px; width: 260px; height: 260px; }
   .hero__actions .btn { width: 100%; }
   .catalog-tools { grid-template-columns: 1fr; gap: 10px; }
-  .hero-carousel { grid-template-columns: 1fr; min-height: 0; }
+  .hero-carousel { min-height: 0; }
+  .hero-carousel__slide { grid-template-columns: 1fr; min-height: 0; }
   .hero-carousel__image-wrap, .hero-carousel__image { min-height: 170px; height: 170px; }
   .hero-carousel__image-wrap { order: 1; }
   .hero-carousel__copy { order: 2; padding: 24px 20px 30px; }

@@ -18,25 +18,28 @@ export default function HeroCarousel({ banners }: { banners: Banner[] }) {
 
   if (!banners.length) return null;
 
-  const banner = banners[active];
-  const fontFamily = banner.fontFamily === 'mono' ? 'ui-monospace, SFMono-Regular, Consolas, monospace' : banner.fontFamily === 'clean' ? "'Avenir Next', Avenir, 'Segoe UI', sans-serif" : "'Arial Black', 'Avenir Next', Avenir, sans-serif";
   return (
-    <section
-      className="hero-carousel"
-      aria-label="Promociones destacadas"
-      style={{ '--banner-title': banner.titleColor, '--banner-subtitle': banner.subtitleColor, '--banner-accent': banner.accentColor, '--banner-font': fontFamily } as CSSProperties}
-    >
-      <div className="hero-carousel__image-wrap" key={`image-${banner.id}`}>
-        <img className="hero-carousel__image" src={banner.imageUrl} alt={banner.title || 'Promoción ElectroMarket'} />
+    <section className="hero-carousel" aria-label="Promociones destacadas">
+      <div className="hero-carousel__track" style={{ transform: `translateX(-${active * 100}%)` }}>
+        {banners.map((banner) => {
+          const fontFamily = banner.fontFamily === 'mono' ? 'ui-monospace, SFMono-Regular, Consolas, monospace' : banner.fontFamily === 'clean' ? "'Avenir Next', Avenir, 'Segoe UI', sans-serif" : "'Arial Black', 'Avenir Next', Avenir, sans-serif";
+          return (
+            <div className="hero-carousel__slide" key={banner.id} style={{ '--banner-title': banner.titleColor, '--banner-subtitle': banner.subtitleColor, '--banner-accent': banner.accentColor, '--banner-font': fontFamily } as CSSProperties}>
+              <div className="hero-carousel__image-wrap">
+                <img className="hero-carousel__image" src={banner.imageUrl} alt={banner.title || 'Promoción ElectroMarket'} />
+              </div>
+              {(banner.title || banner.subtitle) && (
+                <div className="hero-carousel__copy">
+                  <span className="hero-carousel__label">ElectroMarket · selección</span>
+                  {banner.title && <h2>{banner.title}</h2>}
+                  {banner.subtitle && <p>{banner.subtitle}</p>}
+                  <span className="hero-carousel__line" aria-hidden="true" />
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
-      {(banner.title || banner.subtitle) && (
-        <div className="hero-carousel__copy" key={`copy-${banner.id}`}>
-          <span className="hero-carousel__label">ElectroMarket · selección</span>
-          {banner.title && <h2>{banner.title}</h2>}
-          {banner.subtitle && <p>{banner.subtitle}</p>}
-          <span className="hero-carousel__line" aria-hidden="true" />
-        </div>
-      )}
       {banners.length > 1 && (
         <div className="hero-carousel__controls">
           <button type="button" aria-label="Banner anterior" onClick={() => setActive((active - 1 + banners.length) % banners.length)}>‹</button>
