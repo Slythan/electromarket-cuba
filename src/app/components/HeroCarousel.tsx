@@ -12,7 +12,7 @@ export default function HeroCarousel({ banners }: { banners: Banner[] }) {
 
   useEffect(() => {
     if (banners.length < 2) return;
-    const timer = window.setInterval(() => setActive((current) => (current + 1) % banners.length), 5500);
+    const timer = window.setInterval(() => setActive((current) => (current + 1) % banners.length), 7000);
     return () => window.clearInterval(timer);
   }, [banners.length]);
 
@@ -26,11 +26,11 @@ export default function HeroCarousel({ banners }: { banners: Banner[] }) {
       aria-label="Promociones destacadas"
       style={{ '--banner-title': banner.titleColor, '--banner-subtitle': banner.subtitleColor, '--banner-accent': banner.accentColor, '--banner-font': fontFamily } as CSSProperties}
     >
-      <div className="hero-carousel__image-wrap">
+      <div className="hero-carousel__image-wrap" key={`image-${banner.id}`}>
         <img className="hero-carousel__image" src={banner.imageUrl} alt={banner.title || 'Promoción ElectroMarket'} />
       </div>
       {(banner.title || banner.subtitle) && (
-        <div className="hero-carousel__copy">
+        <div className="hero-carousel__copy" key={`copy-${banner.id}`}>
           <span className="hero-carousel__label">ElectroMarket · selección</span>
           {banner.title && <h2>{banner.title}</h2>}
           {banner.subtitle && <p>{banner.subtitle}</p>}
