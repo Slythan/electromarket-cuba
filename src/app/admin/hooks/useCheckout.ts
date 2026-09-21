@@ -96,11 +96,16 @@ export function useCheckout() {
         }
       }
 
+      if (!saved) {
+        try { popup?.close(); } catch { /* el navegador puede impedir cerrar la pestaña */ }
+        return `WhatsApp está listo, pero el pedido no se guardó: ${saveError || 'revisa las políticas de orders en Supabase.'}`;
+      }
+
       clear();
       setDone({ url, saved });
       open('done');
       await reloadProducts(); // refleja el stock descontado
-      return saved ? null : `WhatsApp está listo, pero el pedido no se guardó: ${saveError || 'revisa las políticas de orders en Supabase.'}`;
+      return null;
     },
     [whatsappReady, user, profile, items, total, settings, clear, setDone, open, reloadProducts]
   );
