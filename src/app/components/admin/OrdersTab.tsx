@@ -57,7 +57,7 @@ export default function OrdersTab({ orders, setOrders, loading, onReload }: Orde
     if (!window.confirm(`¿Eliminar el pedido de ${order.customerName}?`)) return;
     try {
       await deleteOrder(order.id);
-      setOrders((prev) => prev.filter((item) => item.id !== order.id));
+      await onReload();
       toast('Pedido eliminado');
     } catch (error) { toast(translateError(error instanceof Error ? error.message : undefined)); }
   };

@@ -66,6 +66,7 @@ export async function updateOrder(id: string, input: Partial<Pick<Order, 'custom
 }
 
 export async function deleteOrder(id: string): Promise<void> {
-  const { error } = await supabase.from('orders').delete().eq('id', id);
+  const { data, error } = await supabase.from('orders').delete().eq('id', id).select('id');
   if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error('No se pudo eliminar el pedido. Ejecuta la política de eliminación de supabase_orders.sql y verifica que tu cuenta sea administradora.');
 }

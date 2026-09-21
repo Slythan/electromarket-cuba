@@ -1,8 +1,10 @@
 -- Ejecutar una vez en Supabase para guardar la liquidación de pedidos de gestores.
+-- Primero se elimina la restricción antigua para poder migrar sus valores.
+alter table public.orders drop constraint if exists orders_status_check;
 update public.orders set status = 'creada' where status = 'nuevo';
+update public.orders set status = 'confirmada' where status = 'confirmado';
 update public.orders set status = 'enviada' where status = 'entregado';
 update public.orders set status = 'cobrada' where status = 'cancelado';
-alter table public.orders drop constraint if exists orders_status_check;
 alter table public.orders add constraint orders_status_check check (status in ('creada', 'confirmada', 'enviada', 'cobrada'));
 alter table public.orders alter column status set default 'creada';
 alter table public.orders add column if not exists negotiated_total numeric;
