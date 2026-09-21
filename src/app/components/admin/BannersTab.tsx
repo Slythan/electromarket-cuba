@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ChangeEvent, type DragEvent, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type CSSProperties, type DragEvent, type FormEvent } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import { fileToBlob } from '@/lib/image';
@@ -21,6 +21,7 @@ export default function BannersTab() {
   const [preview, setPreview] = useState('');
   const [blob, setBlob] = useState<Blob | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [draftStyle, setDraftStyle] = useState({ titleColor: '#ffffff', subtitleColor: '#a9bdd8', accentColor: '#00d5f5', fontFamily: 'display' as Banner['fontFamily'] });
   const objectUrl = useRef<string | null>(null);
 
   const load = async () => {
@@ -43,6 +44,7 @@ export default function BannersTab() {
     setPreview('');
     setBlob(null);
     setError('');
+    setDraftStyle({ titleColor: '#ffffff', subtitleColor: '#a9bdd8', accentColor: '#00d5f5', fontFamily: 'display' });
     if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
     objectUrl.current = null;
   };
@@ -76,6 +78,7 @@ export default function BannersTab() {
     setPreview(banner.imageUrl);
     setBlob(null);
     setError('');
+    setDraftStyle({ titleColor: banner.titleColor, subtitleColor: banner.subtitleColor, accentColor: banner.accentColor, fontFamily: banner.fontFamily });
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -90,6 +93,10 @@ export default function BannersTab() {
         imageUrl,
         title: String(form.get('title') ?? '').trim(),
         subtitle: String(form.get('subtitle') ?? '').trim(),
+        titleColor: String(form.get('titleColor') ?? '#ffffff'),
+        subtitleColor: String(form.get('subtitleColor') ?? '#a9bdd8'),
+        accentColor: String(form.get('accentColor') ?? '#00d5f5'),
+        fontFamily: String(form.get('fontFamily') ?? 'display') as Banner['fontFamily'],
         sortOrder: Math.max(0, Number(form.get('sortOrder') ?? 0)),
         visible: form.get('visible') === 'on',
       }, editing?.id);
@@ -147,6 +154,15 @@ export default function BannersTab() {
             <Field label="Orden"><input className="input" name="sortOrder" type="number" min={0} step={1} defaultValue={editing?.sortOrder ?? banners.length} /></Field>
           </div>
           <Field label="Texto secundario (opcional)"><input className="input" name="subtitle" defaultValue={editing?.subtitle ?? ''} maxLength={140} /></Field>
+          <div className="banner-style-grid">
+            <Field label="Color del título"><input className="color-input" type="color" name="titleColor" value={draftStyle.titleColor} onChange={(event) => setDraftStyle((current) => ({ ...current, titleColor: event.target.value }))} /></Field>
+            <Field label="Color de la descripción"><input className="color-input" type="color" name="subtitleColor" value={draftStyle.subtitleColor} onChange={(event) => setDraftStyle((current) => ({ ...current, subtitleColor: event.target.value }))} /></Field>
+            <Field label="Color de acento"><input className="color-input" type="color" name="accentColor" value={draftStyle.accentColor} onChange={(event) => setDraftStyle((current) => ({ ...current, accentColor: event.target.value }))} /></Field>
+            <Field label="Tipografía"><select className="input" name="fontFamily" value={draftStyle.fontFamily} onChange={(event) => setDraftStyle((current) => ({ ...current, fontFamily: event.target.value as Banner['fontFamily'] }))}><option value="display">Display contundente</option><option value="clean">Limpia y moderna</option><option value="mono">Técnica monoespaciada</option></select></Field>
+          </div>
+          <div className="banner-live-preview" style={{ '--banner-title': draftStyle.titleColor, '--banner-subtitle': draftStyle.subtitleColor, '--banner-accent': draftStyle.accentColor } as CSSProperties}>
+            <span>ElectroMarket · selección</span><strong>{String((editing?.title || 'Tu título') || 'Tu título')}</strong><p>{String((editing?.subtitle || 'Descripción atractiva del producto') || 'Descripción atractiva del producto')}</p>
+          </div>
           <label className="switch"><input type="checkbox" name="visible" defaultChecked={editing?.visible ?? true} /><span>Mostrar en la tienda</span></label>
           <p className="form__error">{error}</p>
           <div className="banner-form__actions">

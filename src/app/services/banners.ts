@@ -8,6 +8,10 @@ export interface BannerInput {
   imageUrl: string;
   title: string;
   subtitle: string;
+  titleColor: string;
+  subtitleColor: string;
+  accentColor: string;
+  fontFamily: Banner['fontFamily'];
   sortOrder: number;
   visible: boolean;
 }
@@ -33,6 +37,10 @@ export async function saveBanner(input: BannerInput, id?: string): Promise<void>
     image_url: input.imageUrl,
     title: input.title,
     subtitle: input.subtitle,
+    title_color: input.titleColor,
+    subtitle_color: input.subtitleColor,
+    accent_color: input.accentColor,
+    font_family: input.fontFamily,
     sort_order: input.sortOrder,
     visible: input.visible,
   };

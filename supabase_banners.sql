@@ -4,10 +4,21 @@ create table if not exists public.banners (
   image_url text not null,
   title text not null default '',
   subtitle text not null default '',
+  title_color text not null default '#ffffff',
+  subtitle_color text not null default '#a9bdd8',
+  accent_color text not null default '#00d5f5',
+  font_family text not null default 'display' check (font_family in ('display', 'clean', 'mono')),
   sort_order integer not null default 0,
   visible boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+alter table public.banners add column if not exists title_color text not null default '#ffffff';
+alter table public.banners add column if not exists subtitle_color text not null default '#a9bdd8';
+alter table public.banners add column if not exists accent_color text not null default '#00d5f5';
+alter table public.banners add column if not exists font_family text not null default 'display';
+alter table public.banners drop constraint if exists banners_font_family_check;
+alter table public.banners add constraint banners_font_family_check check (font_family in ('display', 'clean', 'mono'));
 
 alter table public.banners enable row level security;
 

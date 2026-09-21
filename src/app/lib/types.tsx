@@ -89,6 +89,10 @@ export interface Banner {
   imageUrl: string;
   title: string;
   subtitle: string;
+  titleColor: string;
+  subtitleColor: string;
+  accentColor: string;
+  fontFamily: 'display' | 'clean' | 'mono';
   sortOrder: number;
   visible: boolean;
 }

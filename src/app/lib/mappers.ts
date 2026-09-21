@@ -36,6 +36,10 @@ interface BannerRow {
   image_url: string;
   title: string;
   subtitle: string;
+  title_color?: string | null;
+  subtitle_color?: string | null;
+  accent_color?: string | null;
+  font_family?: Banner['fontFamily'] | null;
   sort_order: number;
   visible: boolean;
 }
@@ -90,6 +94,10 @@ export const mapBanner = (r: BannerRow): Banner => ({
   imageUrl: r.image_url,
   title: r.title,
   subtitle: r.subtitle,
+  titleColor: r.title_color ?? '#ffffff',
+  subtitleColor: r.subtitle_color ?? '#a9bdd8',
+  accentColor: r.accent_color ?? '#00d5f5',
+  fontFamily: r.font_family ?? 'display',
   sortOrder: r.sort_order,
   visible: r.visible,
 });
