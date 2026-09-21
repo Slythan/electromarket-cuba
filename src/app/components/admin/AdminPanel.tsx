@@ -10,14 +10,16 @@ import ProductsTab from './ProductTab';
 import SettingsTab from './SettingsTab';
 import BannersTab from './BannersTab';
 import CategoriesTab from '@/components/admin/CategoriesTab';
+import UsersTab from './UsersTab';
 
-type Tab = 'products' | 'orders' | 'banners' | 'categories' | 'config';
+type Tab = 'products' | 'orders' | 'banners' | 'categories' | 'users' | 'config';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'products', label: 'Productos' },
   { id: 'orders', label: 'Pedidos' },
   { id: 'banners', label: 'Banners' },  
   { id: 'categories', label: 'Categorías' },
+  { id: 'users', label: 'Usuarios y solicitudes' },
   { id: 'config', label: 'Configuración' },
 ];
 
@@ -48,6 +50,7 @@ export default function AdminPanel() {
 
   const visible = products.filter((p) => p.visible).length;
   const newOrders = orders.filter((o) => o.status === 'nuevo').length;
+  const salesTotal = orders.filter((o) => o.status !== 'cancelado').reduce((sum, order) => sum + order.total, 0);
 
   return (
     <div className="container admin">
@@ -64,6 +67,7 @@ export default function AdminPanel() {
         <div className="stat"><b>{products.length}</b><span className="muted">Productos</span></div>
         <div className="stat"><b>{visible}</b><span className="muted">Visibles</span></div>
         <div className="stat"><b>{newOrders}</b><span className="muted">Pedidos nuevos</span></div>
+        <div className="stat"><b>{salesTotal.toLocaleString('es-CU', { minimumFractionDigits: 2 })}</b><span className="muted">Ventas registradas</span></div>
       </div>
 
       <div className="pill-tabs" role="tablist">
@@ -85,6 +89,7 @@ export default function AdminPanel() {
       {tab === 'orders' && <OrdersTab orders={orders} setOrders={setOrders} loading={ordersLoading} onReload={reload} />}
       {tab === 'banners' && <BannersTab />}
       {tab === 'categories' && <CategoriesTab />}
+      {tab === 'users' && <UsersTab />}
       {tab === 'config' && <SettingsTab />}
     </div>
   );

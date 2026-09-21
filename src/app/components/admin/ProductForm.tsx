@@ -58,11 +58,13 @@ export default function ProductForm({ product = null, onSaved }: ProductFormProp
     const f = new FormData(e.currentTarget);
     const name = String(f.get('name') ?? '').trim();
     const price = parseFloat(String(f.get('price') ?? '').replace(',', '.'));
+    const managerPrice = parseFloat(String(f.get('managerPrice') ?? '').replace(',', '.'));
     const stockRaw = String(f.get('stock') ?? '').trim();
     const stock = stockRaw === '' ? null : Math.max(0, parseInt(stockRaw, 10));
 
     if (!name) return setError('Escribe el nombre del producto.');
     if (!Number.isFinite(price) || price < 0) return setError('Precio no válido.');
+    if (!Number.isFinite(managerPrice) || managerPrice < 0) return setError('Precio de gestor no válido.');
     if (stock !== null && Number.isNaN(stock)) return setError('Stock no válido.');
 
     setBusy(true);
@@ -75,6 +77,7 @@ export default function ProductForm({ product = null, onSaved }: ProductFormProp
         {
           name,
           price: Math.round(price * 100) / 100,
+          managerPrice: Math.round(managerPrice * 100) / 100,
           stock,
           categoryId: String(f.get('categoryId') ?? '') || null,
           description: String(f.get('description') ?? '').trim(),
@@ -100,7 +103,7 @@ export default function ProductForm({ product = null, onSaved }: ProductFormProp
       </Field>
 
       <div className="two-col">
-        <Field label="Precio">
+        <Field label="Precio final">
           <input
             className="input"
             type="text"
@@ -108,6 +111,17 @@ export default function ProductForm({ product = null, onSaved }: ProductFormProp
             inputMode="decimal"
             placeholder="0.00"
             defaultValue={product ? String(product.price) : ''}
+            required
+          />
+        </Field>
+        <Field label="Precio de gestor">
+          <input
+            className="input"
+            type="text"
+            name="managerPrice"
+            inputMode="decimal"
+            placeholder="0.00"
+            defaultValue={product ? String(product.managerPrice) : ''}
             required
           />
         </Field>

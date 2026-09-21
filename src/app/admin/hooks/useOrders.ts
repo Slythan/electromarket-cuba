@@ -7,7 +7,7 @@ import { fetchOrders } from '@/services/orders';
 import type { Order } from '@/lib/types';
 
 /** Carga los pedidos (solo cuando `enabled` es true, p. ej. si el usuario es admin). */
-export function useOrders(enabled: boolean) {
+export function useOrders(enabled: boolean, userId?: string) {
   const toast = useToast();
   const [orders, setOrders] = useState<Order[]>([]);
   const [version, setVersion] = useState(0); // sube cada vez que se pide recargar
@@ -16,14 +16,14 @@ export function useOrders(enabled: boolean) {
   useEffect(() => {
     if (!enabled) return;
     let active = true;
-    fetchOrders()
+    fetchOrders(100, userId)
       .then((data) => active && setOrders(data))
       .catch((e) => active && toast(translateError(e instanceof Error ? e.message : undefined)))
       .finally(() => active && setLoadedVersion(version));
     return () => {
       active = false;
     };
-  }, [enabled, version, toast]);
+  }, [enabled, userId, version, toast]);
 
   const reload = useCallback(() => setVersion((v) => v + 1), []);
   const loading = enabled && loadedVersion !== version;

@@ -2,8 +2,9 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useStore } from './StoreContext';
+import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
-import type { CartItem, CartLine } from '@/lib/types';
+import { priceForRole, type CartItem, type CartLine } from '@/lib/types';
 
 const STORAGE_KEY = 'tienda:cart';
 
@@ -43,6 +44,7 @@ function readStoredCart(): CartLine[] {
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { products, loading } = useStore();
+  const { profile } = useAuth();
   const toast = useToast();
   // Se lee del navegador al montar. No causa error de hidratación porque
   // lo que se muestra depende de `products`, que empieza vacío.
@@ -64,10 +66,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const product = products.find((p) => p.id === l.id);
       if (!product || !product.visible) continue;
       const qty = Math.min(l.qty, product.stock ?? Infinity);
-      if (qty > 0) out.push({ product, qty });
+      if (qty > 0) out.push({ product: { ...product, price: priceForRole(product, profile?.role) }, qty });
     }
     return out;
-  }, [lines, products]);
+  }, [lines, products, profile?.role]);
 
   const count = useMemo(() => items.reduce((a, i) => a + i.qty, 0), [items]);
   const total = useMemo(() => items.reduce((a, i) => a + i.product.price * i.qty, 0), [items]);

@@ -33,6 +33,7 @@ export default function Header() {
               Panel
             </Link>
           )}
+          {user && <Link href="/account" className="btn btn--ghost btn--sm">Mi cuenta</Link>}
 
           <button type="button" className="btn btn--ghost cart-btn" onClick={() => open('cart')} aria-label="Abrir carrito">
             🛒

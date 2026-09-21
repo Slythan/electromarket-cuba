@@ -5,6 +5,7 @@ interface ProductRow {
   id: string;
   name: string;
   price: number | string;
+  manager_price?: number | string | null;
   stock: number | null;
   description: string | null;
   image_url: string | null;
@@ -54,6 +55,7 @@ export const mapProduct = (r: ProductRow): Product => ({
   id: r.id,
   name: r.name,
   price: Number(r.price),
+  managerPrice: r.manager_price == null ? Number(r.price) : Number(r.manager_price),
   stock: r.stock,
   description: r.description ?? '',
   imageUrl: r.image_url ?? '',
@@ -74,7 +76,7 @@ export const mapProfile = (r: ProfileRow): Profile => ({
   id: r.id,
   name: r.name ?? '',
   phone: r.phone ?? '',
-  role: (r.role === 'admin' ? 'admin' : 'customer') as Role,
+  role: (r.role === 'admin' || r.role === 'manager' ? r.role : 'customer') as Role,
 });
 
 export const mapSettings = (r: SettingsRow): Settings => ({

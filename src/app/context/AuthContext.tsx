@@ -23,6 +23,7 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (data: SignUpData) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
+  changePassword: (password: string) => Promise<string | null>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -91,9 +92,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }, []);
 
+  const changePassword = useCallback(async (password: string) => {
+    const { error } = await supabase.auth.updateUser({ password });
+    return error ? translateError(error.message) : null;
+  }, []);
+
   const value = useMemo<AuthState>(
-    () => ({ user, profile, isAdmin: profile?.role === 'admin', loading, signIn, signUp, signOut }),
-    [user, profile, loading, signIn, signUp, signOut]
+    () => ({ user, profile, isAdmin: profile?.role === 'admin', loading, signIn, signUp, signOut, changePassword }),
+    [user, profile, loading, signIn, signUp, signOut, changePassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

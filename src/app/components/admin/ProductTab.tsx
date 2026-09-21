@@ -69,7 +69,7 @@ export default function ProductsTab() {
               <div className="prow__info">
                 <strong>{p.name}</strong>
                 <span className="muted">
-                  {formatMoney(p.price, settings.currency)} ·{' '}
+                  Final {formatMoney(p.price, settings.currency)} · Gestor {formatMoney(p.managerPrice, settings.currency)} ·{' '}
                   {p.stock !== null ? `${p.stock} en stock` : 'sin límite de stock'}
                 </span>
               </div>

@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
-import type { Category } from '@/lib/types';
+import { priceForRole, type Category } from '@/lib/types';
 import ProductCard from './ProductCard';
 
 interface ProductGridProps {
@@ -15,7 +15,7 @@ interface ProductGridProps {
 
 export default function ProductGrid({ query = '', categoryId = '', categories = [] }: ProductGridProps) {
   const { products, settings, loading } = useStore();
-  const { isAdmin } = useAuth();
+  const { isAdmin, profile } = useAuth();
   const cart = useCart();
 
   const q = query.trim().toLowerCase();
@@ -48,7 +48,7 @@ export default function ProductGrid({ query = '', categoryId = '', categories = 
       {list.map((p) => (
         <ProductCard
           key={p.id}
-          product={p}
+          product={{ ...p, price: priceForRole(p, profile?.role) }}
           currency={settings.currency}
           qty={cart.qtyOf(p.id)}
           onAdd={() => cart.add(p.id)}

@@ -2,12 +2,14 @@ import { supabase } from '@/lib/supabase';
 import { mapOrder, type OrderRow } from '@/lib/mappers';
 import type { CustomerData, Order, OrderItem, OrderStatus } from '@/lib/types';
 
-export async function fetchOrders(limit = 100): Promise<Order[]> {
-  const { data, error } = await supabase
+export async function fetchOrders(limit = 100, userId?: string): Promise<Order[]> {
+  let query = supabase
     .from('orders')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(limit);
+  if (userId) query = query.eq('user_id', userId);
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return ((data ?? []) as OrderRow[]).map(mapOrder);
 }

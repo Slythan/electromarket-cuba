@@ -7,6 +7,7 @@ const BUCKET = 'product-images';
 export interface ProductInput {
   name: string;
   price: number;
+  managerPrice: number;
   stock: number | null;
   description: string;
   imageUrl: string | null;
@@ -28,6 +29,7 @@ export async function saveProduct(input: ProductInput, id?: string): Promise<voi
   const row = {
     name: input.name,
     price: input.price,
+    manager_price: input.managerPrice,
     stock: input.stock,
     description: input.description,
     image_url: input.imageUrl,

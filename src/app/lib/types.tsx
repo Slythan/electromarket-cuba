@@ -1,4 +1,4 @@
-export type Role = 'admin' | 'customer';
+export type Role = 'admin' | 'manager' | 'customer';
 
 export interface Settings {
   storeName: string;
@@ -19,6 +19,7 @@ export interface Product {
   id: string;
   name: string;
   price: number;
+  managerPrice: number;
   /** null = sin límite de stock */
   stock: number | null;
   description: string;
@@ -32,6 +33,16 @@ export interface Profile {
   name: string;
   phone: string;
   role: Role;
+}
+
+export interface ManagerRequest {
+  id: string;
+  userId: string;
+  name: string;
+  phone: string;
+  message: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
 }
 
 export interface OrderItem {
@@ -81,3 +92,6 @@ export interface Banner {
   sortOrder: number;
   visible: boolean;
 }
+
+export const priceForRole = (product: Product, role: Role | undefined): number =>
+  role === 'manager' ? product.managerPrice : product.price;
