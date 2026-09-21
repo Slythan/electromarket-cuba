@@ -49,8 +49,8 @@ export default function AdminPanel() {
   }
 
   const visible = products.filter((p) => p.visible).length;
-  const newOrders = orders.filter((o) => o.status === 'nuevo').length;
-  const salesTotal = orders.filter((o) => o.status !== 'cancelado').reduce((sum, order) => sum + order.total, 0);
+  const newOrders = orders.filter((o) => o.status === 'creada').length;
+  const salesTotal = orders.reduce((sum, order) => sum + order.total, 0);
 
   return (
     <div className="container admin">

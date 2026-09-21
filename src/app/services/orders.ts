@@ -40,11 +40,32 @@ export async function createOrder({ userId, customer, items, total, negotiatedTo
     notes: customer.notes,
     items,
     total,
+    status: 'creada',
     negotiated_total: negotiatedTotal ?? null,
     commission_base: commissionBase ?? null,
     delivery_fee: deliveryFee ?? null,
     commission: commission ?? null,
     manager_name: managerName ?? null,
   });
+  if (error) throw new Error(error.message);
+}
+
+export async function updateOrder(id: string, input: Partial<Pick<Order, 'customerName' | 'phone' | 'address' | 'notes' | 'total' | 'negotiatedTotal' | 'commissionBase' | 'deliveryFee' | 'commission'>>): Promise<void> {
+  const row: Record<string, unknown> = {};
+  if (input.customerName !== undefined) row.customer_name = input.customerName;
+  if (input.phone !== undefined) row.phone = input.phone;
+  if (input.address !== undefined) row.address = input.address;
+  if (input.notes !== undefined) row.notes = input.notes;
+  if (input.total !== undefined) row.total = input.total;
+  if (input.negotiatedTotal !== undefined) row.negotiated_total = input.negotiatedTotal;
+  if (input.commissionBase !== undefined) row.commission_base = input.commissionBase;
+  if (input.deliveryFee !== undefined) row.delivery_fee = input.deliveryFee;
+  if (input.commission !== undefined) row.commission = input.commission;
+  const { error } = await supabase.from('orders').update(row).eq('id', id);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteOrder(id: string): Promise<void> {
+  const { error } = await supabase.from('orders').delete().eq('id', id);
   if (error) throw new Error(error.message);
 }

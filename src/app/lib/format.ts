@@ -36,21 +36,22 @@ interface WhatsAppParams {
 /** Construye el enlace wa.me con el pedido ya redactado. */
 export function buildWhatsAppUrl({ number, storeName, currency, customer, items, total, managerName, catalogTotal, negotiatedTotal, commissionBase, deliveryFee, commission }: WhatsAppParams): string {
   const lines: string[] = [
-    `🛍️ *Nuevo pedido — ${storeName}*`,
+    `🛍️ NUEVO PEDIDO - ${storeName}`,
     '',
-    `• 👤 *Cliente:* ${customer.name}`,
-    `• 📞 *Teléfono:* ${customer.phone}`,
-    `• 📍 *Dirección:* ${customer.address}`,
+    `• 👤 Cliente: ${customer.name}`,
+    `• 📞 Teléfono: ${customer.phone}`,
+    `• 📍 Dirección: ${customer.address}`,
   ];
-  if (managerName) lines.push(`• 🤝 *Gestor:* ${managerName}`);
-  if (customer.notes) lines.push(`• 📝 *Notas:* ${customer.notes}`);
-  lines.push('', '🛒 *Productos:*');
+  if (managerName) lines.push(`• 🤝 Gestor: ${managerName}`);
+  if (customer.notes) lines.push(`• 📝 Notas: ${customer.notes}`);
+  lines.push('', '🛒 PRODUCTOS:');
   items.forEach(({ product, qty }) =>
-    lines.push(`  • ${qty} x ${product.name} — ${formatMoney(product.price * qty, currency)}`)
+    lines.push(`  • ${qty} x ${product.name} - ${formatMoney(product.price * qty, currency)}`)
   );
-  lines.push('', `💰 *Total a cobrar:* ${formatMoney(total, currency)}`);
+  lines.push('', `💰 Total a cobrar: ${formatMoney(total, currency)}`);
   if (managerName && catalogTotal !== undefined && negotiatedTotal !== undefined && commissionBase !== undefined && deliveryFee !== undefined && commission !== undefined) {
-    lines.push('', '📊 *Resumen del gestor:*', `• 🏷️ Precio de catálogo: ${formatMoney(catalogTotal, currency)}`, `• 🤝 Precio negociado: ${formatMoney(negotiatedTotal, currency)}`, `• 📈 Comisión base: ${formatMoney(commissionBase, currency)}`, `• 🚚 Mensajería: ${formatMoney(deliveryFee, currency)}`, `• ✅ Comisión final: ${formatMoney(commission, currency)}`);
+    lines.push('', '📊 RESUMEN DEL GESTOR:', `• 🏷️ Precio de catálogo: ${formatMoney(catalogTotal, currency)}`, `• 🤝 Precio negociado: ${formatMoney(negotiatedTotal, currency)}`, `• 📈 Comisión base: ${formatMoney(commissionBase, currency)}`, `• 🚚 Mensajería: ${formatMoney(deliveryFee, currency)}`, `• ✅ Comisión final: ${formatMoney(commission, currency)}`);
   }
-  return `https://wa.me/${onlyDigits(number)}?text=${encodeURIComponent(lines.join('\n'))}`;
+  const message = lines.join('\n');
+  return `https://wa.me/${onlyDigits(number)}?${new URLSearchParams({ text: message }).toString()}`;
 }

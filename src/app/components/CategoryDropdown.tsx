@@ -14,7 +14,9 @@ export default function CategoryDropdown({ categories, value, onChange }: Catego
   const [expandedParents, setExpandedParents] = useState<Set<string>>(new Set());
   const dropdownRef = useRef<HTMLDivElement>(null);
   const selected = categories.find((category) => category.id === value);
-  const parents = useMemo(() => categories.filter((category) => !category.parentId), [categories]);
+  const parents = useMemo(() => categories
+    .filter((category) => !category.parentId)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)), [categories]);
 
   useEffect(() => {
     if (!open) return;
@@ -71,7 +73,9 @@ export default function CategoryDropdown({ categories, value, onChange }: Catego
               <span>Todas las categorías</span>
             </button>
             {parents.map((parent) => {
-              const children = categories.filter((category) => category.parentId === parent.id);
+              const children = categories
+                .filter((category) => category.parentId === parent.id)
+                .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name));
               return (
                 <div className="category-group" key={parent.id}>
                   <div className={`category-option-row${value === parent.id ? ' is-selected' : ''}`}>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { useToast } from '@/context/ToastContext';
 import { useStore } from '@/context/StoreContext';
 import { translateError } from '@/lib/format';
@@ -20,6 +20,15 @@ interface ProductFormProps {
 export default function ProductForm({ product = null, onSaved }: ProductFormProps) {
   const toast = useToast();
   const { categories } = useStore();
+  const categoryGroups = useMemo(() => categories
+    .filter((category) => !category.parentId)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name))
+    .map((parent) => ({
+      parent,
+      children: categories
+        .filter((category) => category.parentId === parent.id)
+        .sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)),
+    })), [categories]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [preview, setPreview] = useState(product?.imageUrl ?? '');
@@ -152,10 +161,11 @@ export default function ProductForm({ product = null, onSaved }: ProductFormProp
       <Field label="Categoría">
         <select className="input" name="categoryId" defaultValue={product?.categoryId ?? ''}>
           <option value="">Sin categoría</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.parentId ? `↳ ${category.name}` : category.name}
-            </option>
+          {categoryGroups.map(({ parent, children }) => (
+            <optgroup label={parent.name} key={parent.id}>
+              <option value={parent.id}>{parent.name} · categoría madre</option>
+              {children.map((child) => <option key={child.id} value={child.id}>↳ {child.name}</option>)}
+            </optgroup>
           ))}
         </select>
       </Field>

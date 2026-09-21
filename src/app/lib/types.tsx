@@ -53,7 +53,7 @@ export interface OrderItem {
   negotiatedPrice?: number;
 }
 
-export const ORDER_STATUSES = ['nuevo', 'confirmado', 'entregado', 'cancelado'] as const;
+export const ORDER_STATUSES = ['creada', 'confirmada', 'enviada', 'cobrada'] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
 export interface Order {
