@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
@@ -17,6 +17,8 @@ export default function Header() {
   const { open } = useUI();
   const toast = useToast();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const selectedCategoryId = searchParams.get('category') ?? '';
 
   const firstName = (profile?.name || user?.email || '').split(' ')[0];
   const navLink = (matches: boolean, extraClass = '') => `main-nav__link${matches ? ' is-active' : ''}${extraClass ? ` ${extraClass}` : ''}`;
@@ -65,7 +67,10 @@ export default function Header() {
           {isAdmin && <Link href="/admin" className={navLink(pathname.startsWith('/admin'), 'main-nav__link--admin')} aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>Panel Admin</Link>}
         </div>
       </nav>
-      <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className="category-nav__all">▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).slice(0, 6).map((category) => <Link href={`/?category=${category.id}`} key={category.id}>{category.name}</Link>)}<Link className="category-nav__offer" href="/">Ofertas</Link></div></nav>
+      {!pathname.startsWith('/admin') && <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className={`category-nav__all${!selectedCategoryId ? ' is-active' : ''}`} aria-current={!selectedCategoryId ? 'page' : undefined}>▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).slice(0, 6).map((category) => {
+        const isActive = selectedCategoryId === category.id || categories.some((child) => child.id === selectedCategoryId && child.parentId === category.id);
+        return <Link href={`/?category=${category.id}#catalogo`} className={isActive ? 'is-active' : ''} aria-current={isActive ? 'page' : undefined} key={category.id}>{category.name}</Link>;
+      })}<Link className="category-nav__offer" href="/#catalogo">Ofertas</Link></div></nav>}
     </header>
   );
 }

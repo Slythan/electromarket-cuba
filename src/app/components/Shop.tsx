@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { useStore } from '@/context/StoreContext';
 import ProductGrid from './ProductGrid';
@@ -10,8 +11,14 @@ import StoreHighlights from './StoreHighlights';
 
 export default function Shop() {
   const { settings, banners, categories } = useStore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const categoryId = searchParams.get('category') ?? '';
+
+  const selectCategory = (nextCategoryId: string) => {
+    router.push(nextCategoryId ? `/?category=${nextCategoryId}#catalogo` : '/#catalogo');
+  };
 
   return (
     <div className="container">
@@ -27,10 +34,10 @@ export default function Shop() {
 
       <HeroCarousel banners={banners} />
 
-      <div id="categorias"><CategoryShowcase categories={categories} /></div>
+      <div id="categorias"><CategoryShowcase categories={categories} activeCategoryId={categoryId} /></div>
 
       <div className="catalog-tools">
-        <CategoryDropdown categories={categories} value={categoryId} onChange={setCategoryId} />
+        <CategoryDropdown categories={categories} value={categoryId} onChange={selectCategory} />
         <div className="searchbar">
           <span className="searchbar__icon" aria-hidden="true">⌕</span>
           <input

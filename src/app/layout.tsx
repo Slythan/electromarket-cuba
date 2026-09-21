@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import './globals.css';
 import Providers from '@/components/Providers';
 import Header from '@/components/Header';
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="es">
       <body>
         <Providers>
-          <Header />
+          <Suspense fallback={null}><Header /></Suspense>
           <main>{children}</main>
           <SiteFooter />
         </Providers>
