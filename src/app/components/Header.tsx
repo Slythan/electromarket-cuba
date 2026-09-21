@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
@@ -15,8 +16,10 @@ export default function Header() {
   const { categories } = useStore();
   const { open } = useUI();
   const toast = useToast();
+  const pathname = usePathname();
 
   const firstName = (profile?.name || user?.email || '').split(' ')[0];
+  const navLink = (matches: boolean, extraClass = '') => `main-nav__link${matches ? ' is-active' : ''}${extraClass ? ` ${extraClass}` : ''}`;
 
   return (
     <header className="site-header">
@@ -56,10 +59,10 @@ export default function Header() {
       </div>
       <nav className="main-nav" aria-label="Navegación principal">
         <div className="container main-nav__inner">
-          <Link href="/" className="main-nav__link">Tienda</Link>
-          {user && <Link href="/orders" className="main-nav__link">Órdenes</Link>}
-          {user && <Link href="/account" className="main-nav__link">Cuenta</Link>}
-          {isAdmin && <Link href="/admin" className="main-nav__link main-nav__link--admin">Panel Admin</Link>}
+          <Link href="/" className={navLink(pathname === '/') } aria-current={pathname === '/' ? 'page' : undefined}>Tienda</Link>
+          {user && <Link href="/orders" className={navLink(pathname.startsWith('/orders'))} aria-current={pathname.startsWith('/orders') ? 'page' : undefined}>Órdenes</Link>}
+          {user && <Link href="/account" className={navLink(pathname.startsWith('/account'))} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>Cuenta</Link>}
+          {isAdmin && <Link href="/admin" className={navLink(pathname.startsWith('/admin'), 'main-nav__link--admin')} aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>Panel Admin</Link>}
         </div>
       </nav>
       <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className="category-nav__all">▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).slice(0, 6).map((category) => <Link href={`/?category=${category.id}`} key={category.id}>{category.name}</Link>)}<Link className="category-nav__offer" href="/">Ofertas</Link></div></nav>

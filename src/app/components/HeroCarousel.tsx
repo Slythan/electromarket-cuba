@@ -20,7 +20,7 @@ export default function HeroCarousel({ banners }: { banners: Banner[] }) {
 
   return (
     <section className="hero-carousel" aria-label="Promociones destacadas">
-      <div className="hero-carousel__track" style={{ transform: `translateX(-${active * 100}%)` }}>
+      <div className="hero-carousel__track" style={{ transform: `translate3d(-${active * 100}%, 0, 0)` }}>
         {banners.map((banner) => {
           const fontFamily = banner.fontFamily === 'mono' ? 'ui-monospace, SFMono-Regular, Consolas, monospace' : banner.fontFamily === 'clean' ? "'Avenir Next', Avenir, 'Segoe UI', sans-serif" : "'Arial Black', 'Avenir Next', Avenir, sans-serif";
           return (
