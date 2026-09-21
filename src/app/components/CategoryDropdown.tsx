@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Category } from '@/lib/types';
 
 interface CategoryDropdownProps {
@@ -11,13 +11,30 @@ interface CategoryDropdownProps {
 
 export default function CategoryDropdown({ categories, value, onChange }: CategoryDropdownProps) {
   const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const selected = categories.find((category) => category.id === value);
   const parents = useMemo(() => categories.filter((category) => !category.parentId), [categories]);
+
+  useEffect(() => {
+    if (!open) return;
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('pointerdown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [open]);
 
   if (!categories.length) return null;
 
   return (
-    <div className="category-dropdown">
+    <div className="category-dropdown" ref={dropdownRef}>
       <button
         type="button"
         className={`category-dropdown__trigger${open ? ' is-open' : ''}`}
