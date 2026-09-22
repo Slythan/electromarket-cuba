@@ -13,6 +13,9 @@ export function translateError(message?: string): string {
   if (/Email not confirmed/i.test(m)) return 'Confirma tu correo antes de ingresar.';
   if (/rate limit/i.test(m)) return 'Demasiados intentos. Espera unos minutos.';
   if (/row-level security|permission denied/i.test(m)) return 'No tienes permiso para esta acción.';
+  if (/column .*image_urls.* does not exist/i.test(m))
+    return 'Falta actualizar la base de datos: ejecuta supabase_products.sql en el SQL Editor de Supabase.';
+  if (/products_image_urls_max/i.test(m)) return 'Cada producto admite como máximo 3 fotos.';
   if (/Password should be|weak/i.test(m)) return 'La contraseña es demasiado débil (mínimo 6 caracteres).';
   if (/Failed to fetch|NetworkError/i.test(m)) return 'Sin conexión con el servidor. Revisa tu internet.';
   return m || 'Ocurrió un error desconocido.';

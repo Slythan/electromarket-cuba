@@ -23,10 +23,16 @@ export interface Product {
   /** null = sin límite de stock */
   stock: number | null;
   description: string;
+  /** Portada del producto: siempre la primera de `imageUrls`. */
   imageUrl: string;
+  /** Hasta `MAX_PRODUCT_IMAGES` fotos (la primera es la portada). */
+  imageUrls: string[];
   visible: boolean;
   categoryId?: string | null;
 }
+
+/** Fotos permitidas por producto (coincide con el `check` de supabase_products.sql). */
+export const MAX_PRODUCT_IMAGES = 3;
 
 export interface Profile {
   id: string;

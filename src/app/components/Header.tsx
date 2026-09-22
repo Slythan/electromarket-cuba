@@ -23,7 +23,7 @@ export default function Header() {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
   const selectedCategoryId = pathname.startsWith('/categorias/') ? pathname.split('/')[2] : '';
-  const isStoreRoute = pathname === '/' || pathname.startsWith('/categorias/');
+  const isStoreRoute = pathname === '/' || pathname.startsWith('/categorias/') || pathname.startsWith('/productos/');
   const showStoreTools = !pathname.startsWith('/admin');
 
   const firstName = (profile?.name || user?.email || '').split(' ')[0];

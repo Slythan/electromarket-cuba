@@ -50,7 +50,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // lo que se muestra depende de `products`, que empieza vacío.
   const [lines, setLines] = useState<CartLine[]>(readStoredCart);
 
-  // Guarda el carrito (descartando productos que ya no existen)
+  // Guarda el carrito (descartando solo productos que ya no existen: el store
+  // siempre carga el catálogo completo, así que nunca borra artículos de otras categorías)
   useEffect(() => {
     try {
       const keep = loading || products.length === 0 ? lines : lines.filter((l) => products.some((p) => p.id === l.id));

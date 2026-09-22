@@ -10,7 +10,8 @@ export interface ProductInput {
   managerPrice: number;
   stock: number | null;
   description: string;
-  imageUrl: string | null;
+  /** Hasta 3 fotos; la primera es la portada (se guarda además en `image_url`). */
+  imageUrls: string[];
   visible: boolean;
   categoryId?: string | null;
 }
@@ -22,6 +23,13 @@ export async function fetchProducts(): Promise<Product[]> {
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
   return ((data ?? []) as ProductRow[]).map(mapProduct);
+}
+
+/** Un producto por id (para su página propia). Devuelve null si no existe o está oculto. */
+export async function fetchProduct(id: string): Promise<Product | null> {
+  const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? mapProduct(data as ProductRow) : null;
 }
 
 export async function fetchProductsByCategoryIds(categoryIds: string[]): Promise<Product[]> {
@@ -43,7 +51,8 @@ export async function saveProduct(input: ProductInput, id?: string): Promise<voi
     manager_price: input.managerPrice,
     stock: input.stock,
     description: input.description,
-    image_url: input.imageUrl,
+    image_url: input.imageUrls[0] ?? null,
+    image_urls: input.imageUrls,
     visible: input.visible,
     category_id: input.categoryId ?? null,
   };
@@ -65,7 +74,7 @@ export async function deleteProduct(id: string): Promise<void> {
 
 /** Sube la imagen al bucket público y devuelve su URL. */
 export async function uploadProductImage(blob: Blob): Promise<string> {
-  const path = `${crypto.randomUUID()}.jpg`;
+  const path = `products/${crypto.randomUUID()}.jpg`;
   const { error } = await supabase.storage
     .from(BUCKET)
     .upload(path, blob, { contentType: 'image/jpeg', cacheControl: '3600' });
@@ -73,13 +82,22 @@ export async function uploadProductImage(blob: Blob): Promise<string> {
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
-/** Borra una imagen anterior (si falla no pasa nada). */
-export async function removeProductImage(url?: string | null): Promise<void> {
+/** Ruta dentro del bucket a partir de su URL pública. */
+export const productImagePath = (url?: string | null): string | null => {
   const path = url?.split(`/${BUCKET}/`)[1]?.split('?')[0];
-  if (!path) return;
+  return path ? decodeURIComponent(path) : null;
+};
+
+/** Borra las fotos que el producto ya no usa (si falla no pasa nada). */
+export async function removeProductImages(urls: (string | null | undefined)[]): Promise<void> {
+  const paths = urls.map(productImagePath).filter((path): path is string => Boolean(path));
+  if (!paths.length) return;
   try {
-    await supabase.storage.from(BUCKET).remove([decodeURIComponent(path)]);
+    await supabase.storage.from(BUCKET).remove(paths);
   } catch {
     /* no es crítico */
   }
 }
+
+/** Borra una sola foto (si falla no pasa nada). */
+export const removeProductImage = (url?: string | null): Promise<void> => removeProductImages([url]);

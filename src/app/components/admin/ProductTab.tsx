@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import { formatMoney, translateError } from '@/lib/format';
-import { deleteProduct, removeProductImage, setProductVisible } from '@/services/products';
+import { deleteProduct, removeProductImages, setProductVisible } from '@/services/products';
 import type { Product } from '@/lib/types';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
@@ -45,7 +46,7 @@ export default function ProductsTab() {
     setArmedDelete(null);
     try {
       await deleteProduct(p.id);
-      await removeProductImage(p.imageUrl);
+      await removeProductImages(p.imageUrls);
       await reloadProducts();
       toast('Producto eliminado');
     } catch (e) {
@@ -65,11 +66,16 @@ export default function ProductsTab() {
         <div className="rows">
           {products.map((p) => (
             <div className="prow" key={p.id}>
-              <Thumb src={p.imageUrl} />
+              <div className="prow__thumbs">
+                {(p.imageUrls.length ? p.imageUrls : ['']).map((url, index) => (
+                  <Thumb key={url || `empty-${index}`} src={url} size={56} />
+                ))}
+              </div>
               <div className="prow__info">
                 <strong>{p.name}</strong>
                 <span className="muted">
-                  Final {formatMoney(p.price, settings.currency)} · Gestor {formatMoney(p.managerPrice, settings.currency)} ·{' '}
+                  Cliente final {formatMoney(p.price, settings.currency)} · Gestor {formatMoney(p.managerPrice, settings.currency)} ·{' '}
+                  {p.imageUrls.length} {p.imageUrls.length === 1 ? 'foto' : 'fotos'} ·{' '}
                   {p.stock !== null ? `${p.stock} en stock` : 'sin límite de stock'}
                 </span>
               </div>
@@ -78,6 +84,7 @@ export default function ProductsTab() {
                 <span>Visible</span>
               </label>
               <div className="prow__actions">
+                <Link className="btn btn--ghost btn--sm" href={`/productos/${p.id}`} target="_blank" rel="noopener noreferrer">Ver</Link>
                 <Button variant="ghost" size="sm" onClick={() => setEditing(p)}>Editar</Button>
                 <Button variant="danger" size="sm" onClick={() => remove(p)}>
                   {armedDelete === p.id ? '¿Seguro?' : 'Eliminar'}

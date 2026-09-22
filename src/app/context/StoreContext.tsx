@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
-import { fetchProducts, fetchProductsByCategoryIds } from '@/services/products';
+import { fetchProducts } from '@/services/products';
 import { fetchBanners } from '@/services/banners';
 import { fetchCategories } from '@/services/categories';
 import { DEFAULT_SETTINGS, fetchSettings } from '@/services/settings';
@@ -32,12 +32,12 @@ export function useStore(): StoreState {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const pathname = usePathname();
+  const isHome = pathname === '/';
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const categoryRouteId = pathname.startsWith('/categorias/') ? pathname.split('/')[2] : '';
 
   const reloadProducts = useCallback(async () => {
     try {
@@ -73,25 +73,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return;
     let active = true;
-    const isHomeRoute = pathname === '/';
-    Promise.all([fetchSettings(), isHomeRoute ? fetchBanners().catch(() => null) : Promise.resolve(null), fetchCategories().catch(() => null)])
-      .then(async ([s, b, c]) => {
+    // Siempre se carga el catálogo completo: el carrito necesita resolver cualquier
+    // producto y cada vista filtra por categoría en pantalla.
+    Promise.all([fetchSettings(), fetchCategories().catch(() => null), fetchProducts().catch(() => null)])
+      .then(([nextSettings, nextCategories, nextProducts]) => {
         if (!active) return;
-        const categoryIds = categoryRouteId
-          ? [categoryRouteId, ...(c ?? []).filter((category) => category.parentId === categoryRouteId).map((category) => category.id)]
-          : null;
-        const p = await (categoryIds ? fetchProductsByCategoryIds(categoryIds) : fetchProducts()).catch(() => null);
-        if (!active) return;
-        setSettings(s);
-        if (p) setProducts(p);
-        if (b) setBanners(b);
-        if (c) setCategories(c);
+        setSettings(nextSettings);
+        if (nextCategories) setCategories(nextCategories);
+        if (nextProducts) setProducts(nextProducts);
       })
       .finally(() => active && setLoading(false));
     return () => {
       active = false;
     };
-  }, [authLoading, categoryRouteId, pathname, userId]);
+  }, [authLoading, userId]);
+
+  // Los banners solo se muestran en la portada.
+  useEffect(() => {
+    if (authLoading || !isHome) return;
+    let active = true;
+    fetchBanners()
+      .then((items) => active && setBanners(items))
+      .catch(() => active && setBanners([]));
+    return () => {
+      active = false;
+    };
+  }, [authLoading, isHome, userId]);
 
   useEffect(() => {
     document.title = settings.storeName;

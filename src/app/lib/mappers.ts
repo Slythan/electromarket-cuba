@@ -9,6 +9,7 @@ interface ProductRow {
   stock: number | null;
   description: string | null;
   image_url: string | null;
+  image_urls?: string[] | null;
   visible: boolean;
   category_id?: string | null;
 }
@@ -60,17 +61,23 @@ interface OrderRow {
   created_at: string;
 }
 
-export const mapProduct = (r: ProductRow): Product => ({
-  id: r.id,
-  name: r.name,
-  price: Number(r.price),
-  managerPrice: r.manager_price == null ? Number(r.price) : Number(r.manager_price),
-  stock: r.stock,
-  description: r.description ?? '',
-  imageUrl: r.image_url ?? '',
-  visible: r.visible,
-  categoryId: r.category_id ?? null,
-});
+export const mapProduct = (r: ProductRow): Product => {
+  const stored = Array.isArray(r.image_urls) ? r.image_urls.filter((url) => typeof url === 'string' && url.length > 0) : [];
+  // Productos creados antes de las fotos múltiples: la portada vive en `image_url`.
+  const imageUrls = stored.length ? stored : r.image_url ? [r.image_url] : [];
+  return {
+    id: r.id,
+    name: r.name,
+    price: Number(r.price),
+    managerPrice: r.manager_price == null ? Number(r.price) : Number(r.manager_price),
+    stock: r.stock,
+    description: r.description ?? '',
+    imageUrl: imageUrls[0] ?? '',
+    imageUrls,
+    visible: r.visible,
+    categoryId: r.category_id ?? null,
+  };
+};
 
 export const mapCategory = (r: CategoryRow): Category => ({
   id: r.id,

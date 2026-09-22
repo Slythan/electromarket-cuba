@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
-import { priceForRole, type Category } from '@/lib/types';
+import type { Category } from '@/lib/types';
 import ProductCard from './ProductCard';
 
 interface ProductGridProps {
@@ -12,9 +12,11 @@ interface ProductGridProps {
   categoryId?: string;
   categories?: Category[];
   includeChildren?: boolean;
+  /** Producto que no debe listarse (por ejemplo, el que ya se muestra arriba). */
+  excludeId?: string;
 }
 
-export default function ProductGrid({ query = '', categoryId = '', categories = [], includeChildren = true }: ProductGridProps) {
+export default function ProductGrid({ query = '', categoryId = '', categories = [], includeChildren = true, excludeId }: ProductGridProps) {
   const { products, settings, loading } = useStore();
   const { isAdmin, profile } = useAuth();
   const cart = useCart();
@@ -28,9 +30,13 @@ export default function ProductGrid({ query = '', categoryId = '', categories = 
   const list = useMemo(
     () =>
       products.filter(
-        (p) => p.visible && (!categoryIds || categoryIds.has(p.categoryId ?? '')) && (!q || `${p.name} ${p.description}`.toLowerCase().includes(q))
+        (p) =>
+          p.visible &&
+          p.id !== excludeId &&
+          (!categoryIds || categoryIds.has(p.categoryId ?? '')) &&
+          (!q || `${p.name} ${p.description}`.toLowerCase().includes(q))
       ),
-    [products, q, categoryIds]
+    [products, q, categoryIds, excludeId]
   );
 
   if (loading) return <p className="muted">Cargando productos…</p>;
@@ -49,7 +55,8 @@ export default function ProductGrid({ query = '', categoryId = '', categories = 
       {list.map((p) => (
         <ProductCard
           key={p.id}
-          product={{ ...p, price: priceForRole(p, profile?.role) }}
+          product={p}
+          role={profile?.role}
           currency={settings.currency}
           qty={cart.qtyOf(p.id)}
           onAdd={() => cart.add(p.id)}
