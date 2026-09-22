@@ -61,11 +61,6 @@ export default function Header() {
         </div>}
 
         <nav className="nav">
-          <button type="button" className="btn btn--ghost cart-btn" onClick={() => open('cart')} aria-label="Abrir carrito">
-            🛒
-            {count > 0 && <span className="badge">{count}</span>}
-          </button>
-
           {user ? (
             <>
               <span className="who">Hola, {firstName}</span>
@@ -90,10 +85,25 @@ export default function Header() {
       </header>
       <nav className="main-nav" aria-label="Navegación principal">
         <div className="container main-nav__inner">
-          <Link href="/" className={navLink(isStoreRoute)} aria-current={isStoreRoute ? 'page' : undefined}>Tienda</Link>
-          {user && <Link href="/orders" className={navLink(pathname.startsWith('/orders'))} aria-current={pathname.startsWith('/orders') ? 'page' : undefined}>Órdenes</Link>}
-          {user && <Link href="/account" className={navLink(pathname.startsWith('/account'))} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>Cuenta</Link>}
-          {isAdmin && <Link href="/admin" className={navLink(pathname.startsWith('/admin'), 'main-nav__link--admin')} aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>Panel Admin</Link>}
+          <div className="main-nav__links">
+            <Link href="/" className={navLink(isStoreRoute)} aria-current={isStoreRoute ? 'page' : undefined}>Tienda</Link>
+            {user && <Link href="/orders" className={navLink(pathname.startsWith('/orders'))} aria-current={pathname.startsWith('/orders') ? 'page' : undefined}>Órdenes</Link>}
+            {user && <Link href="/account" className={navLink(pathname.startsWith('/account'))} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>Cuenta</Link>}
+            {isAdmin && <Link href="/admin" className={navLink(pathname.startsWith('/admin'), 'main-nav__link--admin')} aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>Panel Admin</Link>}
+          </div>
+          {/* El carrito vive en esta barra fija para seguir visible al hacer scroll. */}
+          <div className="main-nav__actions">
+            <button
+              type="button"
+              className="btn btn--ghost cart-btn"
+              onClick={() => open('cart')}
+              aria-label={count > 0 ? `Abrir carrito (${count} artículo${count === 1 ? '' : 's'})` : 'Abrir carrito'}
+            >
+              <span aria-hidden="true">🛒</span>
+              <span className="cart-btn__label">Carrito</span>
+              {count > 0 && <span className="badge">{count}</span>}
+            </button>
+          </div>
         </div>
       </nav>
       {isStoreRoute && <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className={`category-nav__all${!selectedCategoryId ? ' is-active' : ''}`} aria-current={!selectedCategoryId ? 'page' : undefined}>▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)).slice(0, 6).map((category) => {

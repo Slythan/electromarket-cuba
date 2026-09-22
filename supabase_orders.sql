@@ -13,6 +13,12 @@ alter table public.orders add column if not exists delivery_fee numeric not null
 alter table public.orders add column if not exists commission numeric;
 alter table public.orders add column if not exists manager_name text;
 
+-- La mensajería es obligatoria: sin valor por defecto, un pedido de cliente (que no envía
+-- mensajería) fallaba con «null value in column "delivery_fee" violates not-null constraint».
+update public.orders set delivery_fee = 0 where delivery_fee is null;
+alter table public.orders alter column delivery_fee set default 0;
+alter table public.orders alter column delivery_fee set not null;
+
 alter table public.orders enable row level security;
 drop policy if exists "usuario crea sus pedidos" on public.orders;
 create policy "usuario crea sus pedidos" on public.orders

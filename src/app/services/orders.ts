@@ -31,6 +31,14 @@ interface CreateOrderInput {
   managerName?: string | null;
 }
 
+/**
+ * Número válido o `fallback`. `delivery_fee` es `not null` en la base de datos y los
+ * pedidos de clientes no llevan mensajería: sin esto llegaría `null` (o `NaN`, que en
+ * JSON viaja como `null`) y Supabase rechazaba el pedido completo.
+ */
+const safeNumber = (value: number | null | undefined, fallback: number): number =>
+  typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+
 export async function createOrder({ userId, customer, items, total, negotiatedTotal, commissionBase, deliveryFee, commission, managerName }: CreateOrderInput): Promise<void> {
   const { error } = await supabase.from('orders').insert({
     user_id: userId,
@@ -43,7 +51,7 @@ export async function createOrder({ userId, customer, items, total, negotiatedTo
     status: 'creada',
     negotiated_total: negotiatedTotal ?? null,
     commission_base: commissionBase ?? null,
-    delivery_fee: deliveryFee ?? null,
+    delivery_fee: safeNumber(deliveryFee, 0),
     commission: commission ?? null,
     manager_name: managerName ?? null,
   });
