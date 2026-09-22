@@ -79,12 +79,14 @@ export function buildOrderMessage({ storeName, currency, customer, items, total,
 
 /**
  * Enlace de WhatsApp con un mensaje ya redactado.
+ * Se usa api.whatsapp.com/send en vez de wa.me: wa.me corrompe los emojis
+ * fuera del BMP (👤📞📍🤝🛒💰📊) al abrirse desde WhatsApp Desktop.
  * Se usa encodeURIComponent (espacios como %20 y emojis en UTF-8): con URLSearchParams
  * los espacios viajaban como '+' y WhatsApp los mostraba literales (+NUEVO+PEDIDO+).
  */
 export const whatsAppLink = (number: string, message: string): string =>
-  `https://wa.me/${onlyDigits(number)}?text=${encodeURIComponent(message)}`;
+  `https://api.whatsapp.com/send?phone=${onlyDigits(number)}&text=${encodeURIComponent(message)}`;
 
-/** Construye el enlace wa.me con el pedido ya redactado. */
+/** Construye el enlace de WhatsApp con el pedido ya redactado. */
 export const buildWhatsAppUrl = (params: WhatsAppParams): string =>
   whatsAppLink(params.number, buildOrderMessage(params));
