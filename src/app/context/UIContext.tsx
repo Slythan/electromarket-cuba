@@ -8,6 +8,8 @@ export type AuthTab = 'login' | 'register';
 export interface DoneInfo {
   /** Enlace de WhatsApp con el pedido */
   url: string;
+  /** El mismo pedido en texto plano (para copiarlo y pegarlo a mano) */
+  text: string;
   /** false si el pedido no pudo guardarse en la base de datos */
   saved: boolean;
   error?: string;

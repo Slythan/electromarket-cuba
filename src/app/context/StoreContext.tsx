@@ -6,19 +6,23 @@ import { useAuth } from './AuthContext';
 import { fetchProducts } from '@/services/products';
 import { fetchBanners } from '@/services/banners';
 import { fetchCategories } from '@/services/categories';
+import { fetchDeliveryZones } from '@/services/deliveryZones';
 import { DEFAULT_SETTINGS, fetchSettings } from '@/services/settings';
-import type { Banner, Category, Product, Settings } from '@/lib/types';
+import type { Banner, Category, DeliveryZone, Product, Settings } from '@/lib/types';
 
 interface StoreState {
   settings: Settings;
   products: Product[];
   banners: Banner[];
   categories: Category[];
+  /** Precios de mensajería por municipio (los usa el checkout del gestor). */
+  deliveryZones: DeliveryZone[];
   loading: boolean;
   reloadProducts: () => Promise<void>;
   reloadSettings: () => Promise<void>;
   reloadBanners: () => Promise<void>;
   reloadCategories: () => Promise<void>;
+  reloadDeliveryZones: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreState | null>(null);
@@ -37,6 +41,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [deliveryZones, setDeliveryZones] = useState<DeliveryZone[]>([]);
   const [loading, setLoading] = useState(true);
 
   const reloadProducts = useCallback(async () => {
@@ -67,6 +72,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const reloadDeliveryZones = useCallback(async () => {
+    try {
+      setDeliveryZones(await fetchDeliveryZones());
+    } catch {
+      setDeliveryZones([]);
+    }
+  }, []);
+
   // Se recarga al iniciar y cada vez que cambia la sesión
   // (el administrador también ve los productos ocultos).
   const userId = user?.id;
@@ -75,12 +88,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     let active = true;
     // Siempre se carga el catálogo completo: el carrito necesita resolver cualquier
     // producto y cada vista filtra por categoría en pantalla.
-    Promise.all([fetchSettings(), fetchCategories().catch(() => null), fetchProducts().catch(() => null)])
-      .then(([nextSettings, nextCategories, nextProducts]) => {
+    Promise.all([fetchSettings(), fetchCategories().catch(() => null), fetchProducts().catch(() => null), fetchDeliveryZones().catch(() => null)])
+      .then(([nextSettings, nextCategories, nextProducts, nextZones]) => {
         if (!active) return;
         setSettings(nextSettings);
         if (nextCategories) setCategories(nextCategories);
         if (nextProducts) setProducts(nextProducts);
+        if (nextZones) setDeliveryZones(nextZones);
       })
       .finally(() => active && setLoading(false));
     return () => {
@@ -105,8 +119,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, [settings.storeName]);
 
   const value = useMemo<StoreState>(
-    () => ({ settings, products, banners, categories, loading, reloadProducts, reloadSettings, reloadBanners, reloadCategories }),
-    [settings, products, banners, categories, loading, reloadProducts, reloadSettings, reloadBanners, reloadCategories]
+    () => ({ settings, products, banners, categories, deliveryZones, loading, reloadProducts, reloadSettings, reloadBanners, reloadCategories, reloadDeliveryZones }),
+    [settings, products, banners, categories, deliveryZones, loading, reloadProducts, reloadSettings, reloadBanners, reloadCategories, reloadDeliveryZones]
   );
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;

@@ -54,11 +54,12 @@ export async function createOrder({ userId, customer, items, total, negotiatedTo
     delivery_fee: safeNumber(deliveryFee, 0),
     commission: commission ?? null,
     manager_name: managerName ?? null,
+    delivery_zone: customer.deliveryZone ?? null,
   });
   if (error) throw new Error(error.message);
 }
 
-export async function updateOrder(id: string, input: Partial<Pick<Order, 'customerName' | 'phone' | 'address' | 'notes' | 'total' | 'negotiatedTotal' | 'commissionBase' | 'deliveryFee' | 'commission'>>): Promise<void> {
+export async function updateOrder(id: string, input: Partial<Pick<Order, 'customerName' | 'phone' | 'address' | 'notes' | 'total' | 'negotiatedTotal' | 'commissionBase' | 'deliveryFee' | 'commission' | 'deliveryZone'>>): Promise<void> {
   const row: Record<string, unknown> = {};
   if (input.customerName !== undefined) row.customer_name = input.customerName;
   if (input.phone !== undefined) row.phone = input.phone;
@@ -69,6 +70,7 @@ export async function updateOrder(id: string, input: Partial<Pick<Order, 'custom
   if (input.commissionBase !== undefined) row.commission_base = input.commissionBase;
   if (input.deliveryFee !== undefined) row.delivery_fee = input.deliveryFee;
   if (input.commission !== undefined) row.commission = input.commission;
+  if (input.deliveryZone !== undefined) row.delivery_zone = input.deliveryZone;
   const { error } = await supabase.from('orders').update(row).eq('id', id);
   if (error) throw new Error(error.message);
 }

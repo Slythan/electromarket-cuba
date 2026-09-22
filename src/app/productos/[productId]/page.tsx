@@ -8,7 +8,7 @@ import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
 import { fetchProduct } from '@/services/products';
 import { formatMoney } from '@/lib/format';
-import { priceForRole, type Product } from '@/lib/types';
+import { hasManagerPricing, priceForRole, type Product } from '@/lib/types';
 import ProductGrid from '@/components/ProductGrid';
 import Button from '@/components/ui/Button';
 import Stepper from '@/components/ui/Stepper';
@@ -55,7 +55,7 @@ export default function ProductPage() {
     );
   }
 
-  const isManager = profile?.role === 'manager';
+  const isManager = hasManagerPricing(profile?.role);
   const price = priceForRole(product, profile?.role);
   const category = categories.find((item) => item.id === product.categoryId);
   const parent = category?.parentId ? categories.find((item) => item.id === category.parentId) : undefined;

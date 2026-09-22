@@ -57,6 +57,7 @@ interface OrderRow {
   delivery_fee?: number | string | null;
   commission?: number | string | null;
   manager_name?: string | null;
+  delivery_zone?: string | null;
   status: string;
   created_at: string;
 }
@@ -127,6 +128,7 @@ export const mapOrder = (r: OrderRow): Order => ({
   deliveryFee: r.delivery_fee == null ? null : Number(r.delivery_fee),
   commission: r.commission == null ? null : Number(r.commission),
   managerName: r.manager_name ?? null,
+  deliveryZone: r.delivery_zone ?? null,
   status: r.status as OrderStatus,
   createdAt: r.created_at,
 });

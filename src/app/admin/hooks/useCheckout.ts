@@ -5,9 +5,10 @@ import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
 import { useUI } from '@/context/UIContext';
-import { buildWhatsAppUrl, onlyDigits } from '@/lib/format';
+import { buildOrderMessage, whatsAppLink, onlyDigits } from '@/lib/format';
+import { deliveryFeeFor, findZone, isFreeDelivery } from '@/lib/delivery';
 import { createOrder } from '@/services/orders';
-import type { CustomerData } from '@/lib/types';
+import { hasManagerPricing, type CustomerData } from '@/lib/types';
 
 /**
  * Lógica de "Finalizar compra": guarda el pedido en la base de datos
@@ -16,7 +17,7 @@ import type { CustomerData } from '@/lib/types';
 export function useCheckout() {
   const { user, profile } = useAuth();
   const { items, total, clear } = useCart();
-  const { settings, reloadProducts } = useStore();
+  const { settings, deliveryZones, reloadProducts } = useStore();
   const { open, setDone } = useUI();
 
   const whatsappReady = onlyDigits(settings.whatsapp).length > 0;
@@ -31,12 +32,15 @@ export function useCheckout() {
       if (!items.length) return 'Tu carrito está vacío.';
 
       const catalogTotal = Math.round(total * 100) / 100;
-      const isManager = profile?.role === 'manager';
+      const isManager = hasManagerPricing(profile?.role);
       const negotiatedTotal = isManager ? Math.round((customer.negotiatedTotal ?? 0) * 100) / 100 : catalogTotal;
-      const deliveryFee = isManager ? Math.round((customer.deliveryFee ?? 0) * 100) / 100 : 0;
       if (isManager && (!Number.isFinite(negotiatedTotal) || negotiatedTotal <= 0)) return 'El precio negociado debe ser mayor que cero.';
-      if (isManager && (!Number.isFinite(deliveryFee) || deliveryFee < 0)) return 'La mensajería no puede ser negativa.';
       if (isManager && negotiatedTotal > catalogTotal) return 'El precio negociado no puede superar el precio de catálogo.';
+
+      // Mensajería: el municipio fija el precio y el pedido se guarda con el nombre del municipio.
+      const zone = isManager ? findZone(deliveryZones, customer.deliveryZone ?? '') : undefined;
+      if (isManager && !zone) return 'Elige el municipio de entrega para calcular la mensajería.';
+      const deliveryFee = isManager ? deliveryFeeFor(negotiatedTotal, zone?.price ?? null) : 0;
       const commissionBase = Math.round((catalogTotal - negotiatedTotal) * 100) / 100;
       const commission = Math.round((commissionBase - deliveryFee) * 100) / 100;
       const orderTotal = negotiatedTotal;
@@ -49,7 +53,7 @@ export function useCheckout() {
         /* se mostrará el botón de respaldo */
       }
 
-      const url = buildWhatsAppUrl({
+      const message = buildOrderMessage({
         number: settings.whatsapp,
         storeName: settings.storeName,
         currency: settings.currency,
@@ -61,15 +65,19 @@ export function useCheckout() {
         negotiatedTotal: isManager ? negotiatedTotal : undefined,
         commissionBase: isManager ? commissionBase : undefined,
         deliveryFee: isManager ? deliveryFee : undefined,
+        deliveryZone: isManager ? zone?.municipality : undefined,
+        freeDelivery: isManager ? isFreeDelivery(negotiatedTotal) : undefined,
         commission: isManager ? commission : undefined,
       });
+      const url = whatsAppLink(settings.whatsapp, message);
 
       let saved = true;
       let saveError = '';
       try {
         await createOrder({
           userId: user.id,
-          customer,
+          // El municipio queda guardado en el pedido con su nombre canónico.
+          customer: { ...customer, deliveryZone: zone?.municipality },
           items: items.map(({ product, qty }) => ({
             id: product.id,
             name: product.name,
@@ -102,12 +110,12 @@ export function useCheckout() {
       }
 
       clear();
-      setDone({ url, saved, error: saveError || undefined });
+      setDone({ url, text: message, saved, error: saveError || undefined });
       open('done');
       await reloadProducts(); // refleja el stock descontado
       return null;
     },
-    [whatsappReady, user, profile, items, total, settings, clear, setDone, open, reloadProducts]
+    [whatsappReady, user, profile, items, total, settings, deliveryZones, clear, setDone, open, reloadProducts]
   );
 
   return { submit, whatsappReady };

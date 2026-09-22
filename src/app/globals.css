@@ -432,6 +432,16 @@ textarea.input { resize: vertical; min-height: 80px; }
 }
 .toast--show { opacity: 1; }
 
+/* ---------- Resumen del pedido en el modal ---------- */
+.done__preview { margin: 4px 0; }
+.done__preview summary { color: var(--accent); font-size: 0.86rem; font-weight: 700; cursor: pointer; }
+.done__preview pre {
+  max-height: 220px; margin: 8px 0 0; padding: 12px; overflow: auto;
+  border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2);
+  color: var(--text); font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font-size: 0.8rem; line-height: 1.55; white-space: pre-wrap; word-break: break-word;
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1100px) {
   .header__inner { flex-wrap: wrap; padding-bottom: 10px; }
@@ -553,6 +563,17 @@ textarea.input { resize: vertical; min-height: 80px; }
 .product__description h2 { margin: 0 0 8px; color: #132942; font-size: 1.1rem; }
 .product__description p { margin: 0; color: var(--muted); line-height: 1.8; white-space: pre-line; }
 .product-related { margin-top: 48px; }
+
+/* ---------- Mensajería (panel) ---------- */
+.delivery-admin { display: grid; gap: 4px; }
+.delivery-form { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 110px minmax(0, 1fr); align-items: end; gap: 14px; margin-bottom: 22px; padding: 18px 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }
+.delivery-form .form__error { grid-column: 1 / -1; }
+.delivery-form .banner-form__actions { grid-column: 1 / -1; }
+.delivery-price { flex: none; color: var(--accent); font-size: 1.05rem; }
+
+@media (max-width: 760px) {
+  .delivery-form { grid-template-columns: 1fr; }
+}
 
 /* ---------- Formulario de producto (panel) ---------- */
 .product-form { display: grid; gap: 16px; }

@@ -7,6 +7,8 @@ import { useStore } from '@/context/StoreContext';
 import { useUI } from '@/context/UIContext';
 import { useCheckout } from '@/admin/hooks/useCheckout';
 import { formatMoney } from '@/lib/format';
+import { FREE_DELIVERY_UNDER, deliveryFeeFor, findZone, isFreeDelivery } from '@/lib/delivery';
+import { hasManagerPricing } from '@/lib/types';
 import Button from './ui/Button';
 import Field from './ui/Field';
 import Modal from './ui/Modal';
@@ -15,17 +17,20 @@ export default function CheckoutModal() {
   const { close } = useUI();
   const { profile } = useAuth();
   const { items, total } = useCart();
-  const { settings } = useStore();
+  const { settings, deliveryZones } = useStore();
   const { submit, whatsappReady } = useCheckout();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [negotiatedInput, setNegotiatedInput] = useState('');
-  const [deliveryInput, setDeliveryInput] = useState('0');
+  const [zoneInput, setZoneInput] = useState('');
 
   const money = (n: number) => formatMoney(n, settings.currency);
-  const isManager = profile?.role === 'manager';
+  const isManager = hasManagerPricing(profile?.role);
   const negotiatedPreview = Number(negotiatedInput.replace(',', '.')) || 0;
-  const deliveryPreview = Number(deliveryInput.replace(',', '.')) || 0;
+  const zone = findZone(deliveryZones, zoneInput);
+  const zonePrice = zone?.price ?? 0;
+  const freeDelivery = isFreeDelivery(negotiatedPreview || total);
+  const deliveryPreview = isManager ? deliveryFeeFor(negotiatedPreview, zonePrice) : 0;
   const commissionBasePreview = Math.max(0, total - negotiatedPreview);
   const commissionPreview = commissionBasePreview - deliveryPreview;
 
@@ -38,7 +43,9 @@ export default function CheckoutModal() {
       address: String(f.get('address') ?? '').trim(),
       notes: String(f.get('notes') ?? '').trim(),
       negotiatedTotal: Number(String(f.get('negotiatedTotal') ?? '').replace(',', '.')),
-      deliveryFee: Number(String(f.get('deliveryFee') ?? '0').replace(',', '.')),
+      // El precio de mensajería lo pone el municipio elegido, no se escribe a mano.
+      deliveryZone: String(f.get('deliveryZone') ?? ''),
+      deliveryFee: deliveryPreview,
     };
     setBusy(true);
     setError('');
@@ -92,12 +99,37 @@ export default function CheckoutModal() {
               <input className="input" type="text" name="negotiatedTotal" inputMode="decimal" placeholder={money(total)} value={negotiatedInput} onChange={(event) => setNegotiatedInput(event.target.value)} required />
               <small className="field__hint">Precio final acordado con el cliente.</small>
             </Field>
-            <Field label={`Mensajería (${settings.currency})`}>
-              <input className="input" type="text" name="deliveryFee" inputMode="decimal" placeholder="0.00" value={deliveryInput} onChange={(event) => setDeliveryInput(event.target.value)} required />
-              <small className="field__hint">Se resta de la comisión base.</small>
+            <Field label="Municipio de entrega" hint="Su precio de mensajería se descuenta de la comisión.">
+              <select className="input" name="deliveryZone" value={zoneInput} onChange={(event) => setZoneInput(event.target.value)} required>
+                <option value="">Elegir municipio…</option>
+                {deliveryZones.map((item) => (
+                  <option key={item.id} value={item.municipality}>{item.municipality} · {money(item.price)}</option>
+                ))}
+              </select>
             </Field>
           </div>
-          <div className="note checkout-commission"><strong>Gestor: {profile.name}</strong><div className="sumline"><span>Precio de catálogo</span><span>{money(total)}</span></div><div className="sumline"><span>Precio negociado</span><span>{money(negotiatedPreview)}</span></div><div className="sumline"><span>Comisión base</span><span>{money(commissionBasePreview)}</span></div><div className="sumline"><span>Mensajería</span><span>- {money(deliveryPreview)}</span></div><div className="sumline sumline--total"><b>Comisión final</b><b>{money(commissionPreview)}</b></div></div>
+
+          {!deliveryZones.length && (
+            <p className="warn">La tienda todavía no tiene municipios con precio de mensajería. Pídele al administrador que los configure en el panel (pestaña Mensajería).</p>
+          )}
+          {freeDelivery && (
+            <p className="note">🚚 Mensajería <strong>gratis</strong>: los pedidos de menos de {money(FREE_DELIVERY_UNDER)} no pagan entrega.</p>
+          )}
+          {!freeDelivery && zone && commissionPreview < 0 && (
+            <p className="warn">La mensajería ({money(deliveryPreview)}) supera la comisión base: en este pedido perderías {money(Math.abs(commissionPreview))}.</p>
+          )}
+
+          <div className="note checkout-commission">
+            <strong>Gestor: {profile?.name ?? ''}</strong>
+            <div className="sumline"><span>Precio de catálogo</span><span>{money(total)}</span></div>
+            <div className="sumline"><span>Precio negociado</span><span>{money(negotiatedPreview)}</span></div>
+            <div className="sumline"><span>Comisión base</span><span>{money(commissionBasePreview)}</span></div>
+            <div className="sumline">
+              <span>Mensajería {zone ? `· ${zone.municipality}` : ''}</span>
+              <span>{zone ? (freeDelivery ? 'Gratis' : `- ${money(deliveryPreview)}`) : 'elige el municipio'}</span>
+            </div>
+            <div className="sumline sumline--total"><b>Comisión final</b><b>{money(commissionPreview)}</b></div>
+          </div>
         </>}
         <Field label="Notas (opcional)">
           <input className="input" type="text" name="notes" maxLength={160} placeholder="Horario, referencias…" />

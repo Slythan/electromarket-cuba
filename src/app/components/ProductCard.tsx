@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { formatMoney } from '@/lib/format';
-import { priceForRole, type Product, type Role } from '@/lib/types';
+import { hasManagerPricing, priceForRole, type Product, type Role } from '@/lib/types';
 import Button from './ui/Button';
 import Stepper from './ui/Stepper';
 
@@ -19,7 +19,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, role, currency, qty, onAdd, onDec, onRemove }: ProductCardProps) {
   const limited = product.stock !== null;
   const soldOut = limited && (product.stock ?? 0) <= 0;
-  const isManager = role === 'manager';
+  const isManager = hasManagerPricing(role);
 
   return (
     <article className="card">

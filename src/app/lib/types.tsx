@@ -34,6 +34,15 @@ export interface Product {
 /** Fotos permitidas por producto (coincide con el `check` de supabase_products.sql). */
 export const MAX_PRODUCT_IMAGES = 3;
 
+/** Municipio de La Habana con el precio de mensajería definido por la tienda. */
+export interface DeliveryZone {
+  id: string;
+  municipality: string;
+  price: number;
+  sortOrder: number;
+  visible: boolean;
+}
+
 export interface Profile {
   id: string;
   name: string;
@@ -75,6 +84,8 @@ export interface Order {
   deliveryFee?: number | null;
   commission?: number | null;
   managerName?: string | null;
+  /** Municipio al que se entrega y que fijó el precio de mensajería. */
+  deliveryZone?: string | null;
   status: OrderStatus;
   createdAt: string;
 }
@@ -96,6 +107,8 @@ export interface CustomerData {
   notes: string;
   negotiatedTotal?: number;
   deliveryFee?: number;
+  /** Municipio elegido por el gestor (deja constancia del precio aplicado). */
+  deliveryZone?: string;
 }
 
 export interface Banner {
@@ -111,5 +124,11 @@ export interface Banner {
   visible: boolean;
 }
 
+/**
+ * El administrador atiende la tienda igual que un gestor, así que también
+ * compra y vende con la tarifa de gestor.
+ */
+export const hasManagerPricing = (role: Role | undefined): boolean => role === 'manager' || role === 'admin';
+
 export const priceForRole = (product: Product, role: Role | undefined): number =>
-  role === 'manager' ? product.managerPrice : product.price;
+  hasManagerPricing(role) ? product.managerPrice : product.price;
