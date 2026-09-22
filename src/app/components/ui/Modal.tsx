@@ -7,10 +7,12 @@ interface ModalProps {
   onClose: () => void;
   /** 'center' = ventana centrada · 'right' = panel lateral (carrito) */
   side?: 'center' | 'right';
+  /** 'wide' = ventana más ancha para formularios del panel */
+  size?: 'md' | 'wide';
   children: ReactNode;
 }
 
-export default function Modal({ title, onClose, side = 'center', children }: ModalProps) {
+export default function Modal({ title, onClose, side = 'center', size = 'md', children }: ModalProps) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -31,7 +33,7 @@ export default function Modal({ title, onClose, side = 'center', children }: Mod
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={side === 'right' ? 'drawer' : 'modal'} role="dialog" aria-modal="true" aria-label={title}>
+      <div className={side === 'right' ? 'drawer' : `modal${size === 'wide' ? ' modal--wide' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
         <div className="panel-head">
           <h2>{title}</h2>
           <button type="button" className="x-btn" onClick={onClose} aria-label="Cerrar">✕</button>

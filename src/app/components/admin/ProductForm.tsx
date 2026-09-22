@@ -160,8 +160,11 @@ export default function ProductForm({ product = null, onSaved }: ProductFormProp
 
   return (
     <form className="product-form" onSubmit={onSubmit}>
-      <div className="product-form__media">
-        <span className="field__label">Fotos · {filled} de {MAX_PRODUCT_IMAGES}</span>
+      <section className="form-section">
+        <div className="form-section__head">
+          <h3 className="form-section__title">Fotos</h3>
+          <p className="form-section__hint">{filled} de {MAX_PRODUCT_IMAGES} · la primera es la portada</p>
+        </div>
         <div className="photo-slots">
           {photos.map((photo, index) => (
             <div className={`photo-slot${photo ? ' is-filled' : ''}`} key={photo?.key ?? `empty-${index}`}>
@@ -176,23 +179,52 @@ export default function ProductForm({ product = null, onSaved }: ProductFormProp
               ) : (
                 <label className="photo-slot__picker">
                   <span aria-hidden="true">＋</span>
-                  <small>Foto {index + 1}</small>
-                  <input type="file" accept="image/*" onChange={(event) => void onFile(index, event)} />
+                  <small>Añadir foto</small>
+                  <input type="file" accept="image/*" aria-label={`Añadir foto ${index + 1}`} onChange={(event) => void onFile(index, event)} />
                 </label>
               )}
             </div>
           ))}
         </div>
-        <p className="field__hint">Hasta {MAX_PRODUCT_IMAGES} fotos por producto. La portada es la que se ve en el catálogo y en el carrito.</p>
-      </div>
+      </section>
 
-      <div className="product-form__fields">
+      <section className="form-section">
+        <div className="form-section__head">
+          <h3 className="form-section__title">Información</h3>
+          <p className="form-section__hint">Se muestra en el catálogo y en la página del producto</p>
+        </div>
         <Field label="Nombre">
-          <input className="input" type="text" name="name" maxLength={80} defaultValue={product?.name ?? ''} required />
+          <input className="input" type="text" name="name" maxLength={80} placeholder="Ej.: Inversor 1500W onda pura" defaultValue={product?.name ?? ''} required />
         </Field>
+        <Field label="Descripción" hint="Características, qué incluye, garantía…">
+          <textarea className="input" name="description" maxLength={900} rows={4} placeholder="Describe el producto para tus clientes" defaultValue={product?.description ?? ''} />
+        </Field>
+        <div className="form-section__grid">
+          <Field label="Categoría">
+            <select className="input" name="categoryId" defaultValue={product?.categoryId ?? ''}>
+              <option value="">Sin categoría</option>
+              {categoryGroups.map(({ parent, children }) => (
+                <optgroup label={parent.name} key={parent.id}>
+                  <option value={parent.id}>{parent.name} · categoría madre</option>
+                  {children.map((child) => <option key={child.id} value={child.id}>↳ {child.name}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </Field>
+          <label className="switch switch--panel">
+            <input type="checkbox" name="visible" defaultChecked={product ? product.visible : true} />
+            <span>Visible en la tienda</span>
+          </label>
+        </div>
+      </section>
 
-        <div className="product-form__prices">
-          <Field label="Precio cliente final" hint="Lo que paga un comprador normal.">
+      <section className="form-section">
+        <div className="form-section__head">
+          <h3 className="form-section__title">Precios y stock</h3>
+          <p className="form-section__hint">El gestor puede vender más caro: su comisión es la diferencia</p>
+        </div>
+        <div className="form-section__grid form-section__grid--prices">
+          <Field label="Precio cliente final" hint="Lo que paga un cliente normal.">
             <input className="input" type="text" name="price" inputMode="decimal" placeholder="0.00" defaultValue={product ? String(product.price) : ''} required />
           </Field>
           <Field label="Precio de gestor" hint="Lo que paga un gestor aprobado.">
@@ -202,30 +234,11 @@ export default function ProductForm({ product = null, onSaved }: ProductFormProp
             <input className="input" type="number" name="stock" min={0} step={1} placeholder="Sin límite" defaultValue={product?.stock ?? ''} />
           </Field>
         </div>
+      </section>
 
-        <Field label="Descripción" hint="Se muestra en la página propia del producto.">
-          <textarea className="input" name="description" maxLength={900} rows={5} placeholder="Características, incluye, garantía…" defaultValue={product?.description ?? ''} />
-        </Field>
-
-        <Field label="Categoría" hint="El producto aparece en esta categoría y en su página propia.">
-          <select className="input" name="categoryId" defaultValue={product?.categoryId ?? ''}>
-            <option value="">Sin categoría</option>
-            {categoryGroups.map(({ parent, children }) => (
-              <optgroup label={parent.name} key={parent.id}>
-                <option value={parent.id}>{parent.name} · categoría madre</option>
-                {children.map((child) => <option key={child.id} value={child.id}>↳ {child.name}</option>)}
-              </optgroup>
-            ))}
-          </select>
-        </Field>
-
-        <label className="switch">
-          <input type="checkbox" name="visible" defaultChecked={product ? product.visible : true} />
-          <span>Visible en la tienda</span>
-        </label>
-
+      <div className="product-form__footer">
         <p className="form__error">{error}</p>
-        <div className="banner-form__actions">
+        <div className="product-form__actions">
           <Button type="submit" disabled={busy}>{busy ? 'Guardando…' : 'Guardar producto'}</Button>
         </div>
       </div>

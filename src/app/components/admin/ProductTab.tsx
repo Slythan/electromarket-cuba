@@ -96,7 +96,7 @@ export default function ProductsTab() {
       )}
 
       {formOpen && (
-        <Modal title={editing ? 'Editar producto' : 'Nuevo producto'} onClose={closeForm}>
+        <Modal title={editing ? 'Editar producto' : 'Nuevo producto'} onClose={closeForm} size="wide">
           <ProductForm
             product={editing}
             onSaved={async () => {
