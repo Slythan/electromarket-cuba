@@ -13,6 +13,11 @@ alter table public.orders add column if not exists delivery_fee numeric not null
 alter table public.orders add column if not exists commission numeric;
 alter table public.orders add column if not exists manager_name text;
 
+-- Costo del gestor (suma de precios de gestor del pedido). La comisión se calcula así:
+--   margen bruto   = precio pactado (total) − manager_cost
+--   comisión final = margen bruto − delivery_fee
+alter table public.orders add column if not exists manager_cost numeric;
+
 -- La mensajería es obligatoria: sin valor por defecto, un pedido de cliente (que no envía
 -- mensajería) fallaba con «null value in column "delivery_fee" violates not-null constraint».
 update public.orders set delivery_fee = 0 where delivery_fee is null;

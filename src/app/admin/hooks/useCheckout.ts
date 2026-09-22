@@ -6,6 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
 import { useUI } from '@/context/UIContext';
 import { buildOrderMessage, whatsAppLink, onlyDigits } from '@/lib/format';
+import { commissionFor, managerCostOf } from '@/lib/commission';
 import { deliveryFeeFor, findZone, isFreeDelivery } from '@/lib/delivery';
 import { createOrder } from '@/services/orders';
 import { hasManagerPricing, type CustomerData } from '@/lib/types';
@@ -31,19 +32,24 @@ export function useCheckout() {
         return 'Nombre, teléfono y dirección son obligatorios.';
       if (!items.length) return 'Tu carrito está vacío.';
 
-      const catalogTotal = Math.round(total * 100) / 100;
+      // Para un gestor/admin el carrito ya muestra sus precios de gestor; se calcula
+      // el costo de forma explícita para no depender de cómo se pinte el carrito.
+      const cartTotal = Math.round(total * 100) / 100;
       const isManager = hasManagerPricing(profile?.role);
-      const negotiatedTotal = isManager ? Math.round((customer.negotiatedTotal ?? 0) * 100) / 100 : catalogTotal;
-      if (isManager && (!Number.isFinite(negotiatedTotal) || negotiatedTotal <= 0)) return 'El precio negociado debe ser mayor que cero.';
-      if (isManager && negotiatedTotal > catalogTotal) return 'El precio negociado no puede superar el precio de catálogo.';
+      const managerCost = isManager ? managerCostOf(items) : 0;
+      // Precio pactado: lo que paga el cliente final (puede ser mayor que el costo).
+      const pactado = isManager ? Math.round((customer.negotiatedTotal ?? 0) * 100) / 100 : cartTotal;
+      if (isManager && (!Number.isFinite(pactado) || pactado <= 0)) return 'El precio pactado debe ser mayor que cero.';
+      if (isManager && pactado < managerCost)
+        return `El precio pactado no puede ser menor que el costo del gestor (${managerCost.toFixed(2)}).`;
 
       // Mensajería: el municipio fija el precio y el pedido se guarda con el nombre del municipio.
       const zone = isManager ? findZone(deliveryZones, customer.deliveryZone ?? '') : undefined;
       if (isManager && !zone) return 'Elige el municipio de entrega para calcular la mensajería.';
-      const deliveryFee = isManager ? deliveryFeeFor(negotiatedTotal, zone?.price ?? null) : 0;
-      const commissionBase = Math.round((catalogTotal - negotiatedTotal) * 100) / 100;
-      const commission = Math.round((commissionBase - deliveryFee) * 100) / 100;
-      const orderTotal = negotiatedTotal;
+      const deliveryFee = isManager ? deliveryFeeFor(pactado, zone?.price ?? null) : 0;
+      // Comisión del gestor = precio pactado − costo del gestor − mensajería.
+      const { commissionBase, commission } = commissionFor(pactado, managerCost, deliveryFee);
+      const orderTotal = pactado;
 
       // La pestaña de WhatsApp se abre ahora (gesto del usuario) para que el navegador no la bloquee.
       let popup: Window | null = null;
@@ -61,12 +67,12 @@ export function useCheckout() {
         items,
         total: orderTotal,
         managerName: isManager ? profile?.name : undefined,
-        catalogTotal: isManager ? catalogTotal : undefined,
-        negotiatedTotal: isManager ? negotiatedTotal : undefined,
+        managerCost: isManager ? managerCost : undefined,
+        pactado: isManager ? pactado : undefined,
         commissionBase: isManager ? commissionBase : undefined,
         deliveryFee: isManager ? deliveryFee : undefined,
         deliveryZone: isManager ? zone?.municipality : undefined,
-        freeDelivery: isManager ? isFreeDelivery(negotiatedTotal) : undefined,
+        freeDelivery: isManager ? isFreeDelivery(pactado) : undefined,
         commission: isManager ? commission : undefined,
       });
       const url = whatsAppLink(settings.whatsapp, message);
@@ -85,7 +91,8 @@ export function useCheckout() {
             qty,
           })),
           total: orderTotal,
-          negotiatedTotal: isManager ? negotiatedTotal : null,
+          negotiatedTotal: isManager ? pactado : null,
+          managerCost: isManager ? managerCost : null,
           commissionBase: isManager ? commissionBase : null,
           deliveryFee: isManager ? deliveryFee : null,
           commission: isManager ? commission : null,

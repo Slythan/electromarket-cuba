@@ -11,13 +11,15 @@ import SettingsTab from './SettingsTab';
 import BannersTab from './BannersTab';
 import CategoriesTab from '@/components/admin/CategoriesTab';
 import DeliveryZonesTab from './DeliveryZonesTab';
+import ManagersTab from './ManagersTab';
 import UsersTab from './UsersTab';
 
-type Tab = 'products' | 'orders' | 'banners' | 'categories' | 'delivery' | 'users' | 'config';
+type Tab = 'products' | 'orders' | 'banners' | 'categories' | 'delivery' | 'managers' | 'users' | 'config';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'products', label: 'Productos' },
   { id: 'orders', label: 'Pedidos' },
+  { id: 'managers', label: 'Gestores' },
   { id: 'banners', label: 'Banners' },  
   { id: 'categories', label: 'Categorías' },
   { id: 'delivery', label: 'Mensajería' },
@@ -89,6 +91,7 @@ export default function AdminPanel() {
 
       {tab === 'products' && <ProductsTab />}
       {tab === 'orders' && <OrdersTab orders={orders} setOrders={setOrders} loading={ordersLoading} onReload={reload} />}
+      {tab === 'managers' && <ManagersTab />}
       {tab === 'banners' && <BannersTab />}
       {tab === 'categories' && <CategoriesTab />}
       {tab === 'delivery' && <DeliveryZonesTab />}

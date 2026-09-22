@@ -14,6 +14,19 @@ export async function fetchOrders(limit = 100, userId?: string): Promise<Order[]
   return ((data ?? []) as OrderRow[]).map(mapOrder);
 }
 
+/** Pedidos creados en el rango [from, to) — para el resumen semanal de gestores. */
+export async function fetchOrdersInRange(from: Date, to: Date, limit = 500): Promise<Order[]> {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*')
+    .gte('created_at', from.toISOString())
+    .lt('created_at', to.toISOString())
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as OrderRow[]).map(mapOrder);
+}
+
 export async function updateOrderStatus(id: string, status: OrderStatus): Promise<void> {
   const { error } = await supabase.from('orders').update({ status }).eq('id', id);
   if (error) throw new Error(error.message);
@@ -23,10 +36,16 @@ interface CreateOrderInput {
   userId: string;
   customer: CustomerData;
   items: OrderItem[];
+  /** Precio pactado con el cliente. */
   total: number;
+  /** Mismo valor que `total` (compatibilidad). */
   negotiatedTotal?: number | null;
+  /** Costo del gestor (suma de precios de gestor). */
+  managerCost?: number | null;
+  /** Margen bruto: pactado − costo. */
   commissionBase?: number | null;
   deliveryFee?: number | null;
+  /** Comisión final: margen bruto − mensajería. */
   commission?: number | null;
   managerName?: string | null;
 }
@@ -39,7 +58,7 @@ interface CreateOrderInput {
 const safeNumber = (value: number | null | undefined, fallback: number): number =>
   typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 
-export async function createOrder({ userId, customer, items, total, negotiatedTotal, commissionBase, deliveryFee, commission, managerName }: CreateOrderInput): Promise<void> {
+export async function createOrder({ userId, customer, items, total, negotiatedTotal, managerCost, commissionBase, deliveryFee, commission, managerName }: CreateOrderInput): Promise<void> {
   const { error } = await supabase.from('orders').insert({
     user_id: userId,
     customer_name: customer.name,
@@ -50,6 +69,7 @@ export async function createOrder({ userId, customer, items, total, negotiatedTo
     total,
     status: 'creada',
     negotiated_total: negotiatedTotal ?? null,
+    manager_cost: managerCost ?? null,
     commission_base: commissionBase ?? null,
     delivery_fee: safeNumber(deliveryFee, 0),
     commission: commission ?? null,
@@ -59,7 +79,7 @@ export async function createOrder({ userId, customer, items, total, negotiatedTo
   if (error) throw new Error(error.message);
 }
 
-export async function updateOrder(id: string, input: Partial<Pick<Order, 'customerName' | 'phone' | 'address' | 'notes' | 'total' | 'negotiatedTotal' | 'commissionBase' | 'deliveryFee' | 'commission' | 'deliveryZone'>>): Promise<void> {
+export async function updateOrder(id: string, input: Partial<Pick<Order, 'customerName' | 'phone' | 'address' | 'notes' | 'total' | 'negotiatedTotal' | 'managerCost' | 'commissionBase' | 'deliveryFee' | 'commission' | 'deliveryZone'>>): Promise<void> {
   const row: Record<string, unknown> = {};
   if (input.customerName !== undefined) row.customer_name = input.customerName;
   if (input.phone !== undefined) row.phone = input.phone;
@@ -67,6 +87,7 @@ export async function updateOrder(id: string, input: Partial<Pick<Order, 'custom
   if (input.notes !== undefined) row.notes = input.notes;
   if (input.total !== undefined) row.total = input.total;
   if (input.negotiatedTotal !== undefined) row.negotiated_total = input.negotiatedTotal;
+  if (input.managerCost !== undefined) row.manager_cost = input.managerCost;
   if (input.commissionBase !== undefined) row.commission_base = input.commissionBase;
   if (input.deliveryFee !== undefined) row.delivery_fee = input.deliveryFee;
   if (input.commission !== undefined) row.commission = input.commission;

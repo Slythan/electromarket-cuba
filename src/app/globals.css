@@ -564,6 +564,23 @@ textarea.input { resize: vertical; min-height: 80px; }
 .product__description p { margin: 0; color: var(--muted); line-height: 1.8; white-space: pre-line; }
 .product-related { margin-top: 48px; }
 
+/* ---------- Cuenta semanal de gestores (panel) ---------- */
+.managers-admin { display: grid; gap: 4px; }
+.managers-admin__week { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.managers-admin__week-label { min-width: 130px; color: var(--accent); font-size: 0.82rem; font-weight: 700; text-align: center; }
+.manager-row { gap: 14px; }
+.manager-row__rank { display: grid; flex: none; width: 30px; height: 30px; place-items: center; border-radius: 50%; background: var(--surface-2); color: var(--accent); font-size: 0.82rem; font-weight: 800; }
+.manager-row__amount { display: grid; flex: none; gap: 2px; margin-left: auto; text-align: right; }
+.manager-row__amount small { font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; }
+.manager-row__amount strong { color: var(--accent); font-size: 1.15rem; }
+
+@media (max-width: 560px) {
+  .managers-admin__week { width: 100%; }
+  .managers-admin__week .btn { flex: 1; }
+  .manager-row { flex-wrap: wrap; }
+  .manager-row__amount { margin-left: 0; text-align: left; }
+}
+
 /* ---------- Mensajería (panel) ---------- */
 .delivery-admin { display: grid; gap: 4px; }
 .delivery-form { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) 110px minmax(0, 1fr); align-items: end; gap: 14px; margin-bottom: 22px; padding: 18px 20px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow); }

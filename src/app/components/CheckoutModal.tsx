@@ -7,6 +7,7 @@ import { useStore } from '@/context/StoreContext';
 import { useUI } from '@/context/UIContext';
 import { useCheckout } from '@/admin/hooks/useCheckout';
 import { formatMoney } from '@/lib/format';
+import { commissionFor, managerCostOf, round2 } from '@/lib/commission';
 import { FREE_DELIVERY_UNDER, deliveryFeeFor, findZone, isFreeDelivery } from '@/lib/delivery';
 import { hasManagerPricing } from '@/lib/types';
 import Button from './ui/Button';
@@ -26,13 +27,15 @@ export default function CheckoutModal() {
 
   const money = (n: number) => formatMoney(n, settings.currency);
   const isManager = hasManagerPricing(profile?.role);
-  const negotiatedPreview = Number(negotiatedInput.replace(',', '.')) || 0;
+  const pactadoPreview = Number(negotiatedInput.replace(',', '.')) || 0;
   const zone = findZone(deliveryZones, zoneInput);
   const zonePrice = zone?.price ?? 0;
-  const freeDelivery = isFreeDelivery(negotiatedPreview || total);
-  const deliveryPreview = isManager ? deliveryFeeFor(negotiatedPreview, zonePrice) : 0;
-  const commissionBasePreview = Math.max(0, total - negotiatedPreview);
-  const commissionPreview = commissionBasePreview - deliveryPreview;
+  const freeDelivery = isFreeDelivery(pactadoPreview || total);
+  const deliveryPreview = isManager ? deliveryFeeFor(pactadoPreview, zonePrice) : 0;
+  // Costo del gestor = suma de precios de gestor; el carrito ya los muestra así.
+  const managerCostPreview = managerCostOf(items);
+  const { commissionBase: marginPreview, commission: commissionPreview } = commissionFor(pactadoPreview, managerCostPreview, deliveryPreview);
+  const belowCost = isManager && pactadoPreview > 0 && round2(pactadoPreview - managerCostPreview) < 0;
 
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -95,9 +98,9 @@ export default function CheckoutModal() {
         </Field>
         {isManager && <>
           <div className="two-col">
-            <Field label={`Precio negociado (${settings.currency})`}>
+            <Field label={`Precio pactado (${settings.currency})`}>
               <input className="input" type="text" name="negotiatedTotal" inputMode="decimal" placeholder={money(total)} value={negotiatedInput} onChange={(event) => setNegotiatedInput(event.target.value)} required />
-              <small className="field__hint">Precio final acordado con el cliente.</small>
+              <small className="field__hint">Lo que pagará el cliente final (puede ser mayor que tu costo).</small>
             </Field>
             <Field label="Municipio de entrega" hint="Su precio de mensajería se descuenta de la comisión.">
               <select className="input" name="deliveryZone" value={zoneInput} onChange={(event) => setZoneInput(event.target.value)} required>
@@ -116,19 +119,22 @@ export default function CheckoutModal() {
             <p className="note">🚚 Mensajería <strong>gratis</strong>: los pedidos de menos de {money(FREE_DELIVERY_UNDER)} no pagan entrega.</p>
           )}
           {!freeDelivery && zone && commissionPreview < 0 && (
-            <p className="warn">La mensajería ({money(deliveryPreview)}) supera la comisión base: en este pedido perderías {money(Math.abs(commissionPreview))}.</p>
+            <p className="warn">La mensajería ({money(deliveryPreview)}) supera tu margen: en este pedido perderías {money(Math.abs(commissionPreview))}.</p>
+          )}
+          {belowCost && (
+            <p className="warn">El precio pactado es menor que tu costo ({money(managerCostPreview)}): revisa el precio antes de enviar.</p>
           )}
 
           <div className="note checkout-commission">
             <strong>Gestor: {profile?.name ?? ''}</strong>
-            <div className="sumline"><span>Precio de catálogo</span><span>{money(total)}</span></div>
-            <div className="sumline"><span>Precio negociado</span><span>{money(negotiatedPreview)}</span></div>
-            <div className="sumline"><span>Comisión base</span><span>{money(commissionBasePreview)}</span></div>
+            <div className="sumline"><span>Tu costo (carrito)</span><span>{money(managerCostPreview)}</span></div>
+            <div className="sumline"><span>Precio pactado</span><span>{money(pactadoPreview)}</span></div>
+            <div className="sumline"><span>Margen bruto</span><span>{money(marginPreview)}</span></div>
             <div className="sumline">
               <span>Mensajería {zone ? `· ${zone.municipality}` : ''}</span>
               <span>{zone ? (freeDelivery ? 'Gratis' : `- ${money(deliveryPreview)}`) : 'elige el municipio'}</span>
             </div>
-            <div className="sumline sumline--total"><b>Comisión final</b><b>{money(commissionPreview)}</b></div>
+            <div className="sumline sumline--total"><b>Comisión del gestor</b><b>{money(commissionPreview)}</b></div>
           </div>
         </>}
         <Field label="Notas (opcional)">

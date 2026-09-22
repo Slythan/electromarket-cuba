@@ -78,10 +78,16 @@ export interface Order {
   address: string;
   notes: string;
   items: OrderItem[];
+  /** Precio pactado con el cliente (lo que paga). */
   total: number;
+  /** Igual que `total`: precio pactado (se conserva por compatibilidad). */
   negotiatedTotal?: number | null;
+  /** Lo que le costó el pedido al gestor (suma de precios de gestor). */
+  managerCost?: number | null;
+  /** Margen bruto: precio pactado − costo del gestor. */
   commissionBase?: number | null;
   deliveryFee?: number | null;
+  /** Lo que cobra el gestor: margen bruto − mensajería. */
   commission?: number | null;
   managerName?: string | null;
   /** Municipio al que se entrega y que fijó el precio de mensajería. */

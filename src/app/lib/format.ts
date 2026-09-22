@@ -35,8 +35,11 @@ interface WhatsAppParams {
   items: CartItem[];
   total: number;
   managerName?: string;
-  catalogTotal?: number;
-  negotiatedTotal?: number;
+  /** Costo del gestor: suma de precios de gestor del pedido. */
+  managerCost?: number;
+  /** Precio pactado con el cliente (lo que paga). */
+  pactado?: number;
+  /** Margen bruto: pactado − costo del gestor. */
   commissionBase?: number;
   deliveryFee?: number;
   /** Municipio de entrega (solo pedidos de gestor). */
@@ -47,7 +50,7 @@ interface WhatsAppParams {
 }
 
 /** Redacta el mensaje del pedido (texto plano con emojis). */
-export function buildOrderMessage({ storeName, currency, customer, items, total, managerName, catalogTotal, negotiatedTotal, commissionBase, deliveryFee, deliveryZone: zoneName, freeDelivery, commission }: WhatsAppParams): string {
+export function buildOrderMessage({ storeName, currency, customer, items, total, managerName, managerCost, pactado, commissionBase, deliveryFee, deliveryZone: zoneName, freeDelivery, commission }: WhatsAppParams): string {
   // Los emojis se escriben con escapes \u{...} (ASCII en el archivo): así ningún
   // editor, consola o herramienta que no soporte caracteres fuera del BMP puede
   // corromperlos. En tiempo de ejecución el texto es idéntico.
@@ -65,11 +68,11 @@ export function buildOrderMessage({ storeName, currency, customer, items, total,
     lines.push(`  • ${qty} x ${product.name} - ${formatMoney(product.price * qty, currency)}`)
   );
   lines.push('', `\u{1F4B0} Total a cobrar: ${formatMoney(total, currency)}`);
-  if (managerName && catalogTotal !== undefined && negotiatedTotal !== undefined && commissionBase !== undefined && deliveryFee !== undefined && commission !== undefined) {
+  if (managerName && managerCost !== undefined && pactado !== undefined && commissionBase !== undefined && deliveryFee !== undefined && commission !== undefined) {
     // La mensajería sale del municipio; si el pedido es pequeño, es gratis.
     const zoneLabel = zoneName ? ` (${zoneName})` : '';
     const deliveryLabel = freeDelivery ? `Gratis${zoneLabel}` : `${formatMoney(deliveryFee, currency)}${zoneLabel}`;
-    lines.push('', '\u{1F4CA} RESUMEN DEL GESTOR:', `• \u{1F3F7}\uFE0F Precio de catálogo: ${formatMoney(catalogTotal, currency)}`, `• \u{1F91D} Precio negociado: ${formatMoney(negotiatedTotal, currency)}`, `• \u{1F4C8} Comisión base: ${formatMoney(commissionBase, currency)}`, `• \u{1F69A} Mensajería: ${deliveryLabel}`, `• \u2705 Comisión final: ${formatMoney(commission, currency)}`);
+    lines.push('', '\u{1F4CA} RESUMEN DEL GESTOR:', `• \u{1F91D} Precio pactado: ${formatMoney(pactado, currency)}`, `• \u{1F4E6} Costo del gestor: ${formatMoney(managerCost, currency)}`, `• \u{1F4C8} Margen bruto: ${formatMoney(commissionBase, currency)}`, `• \u{1F69A} Mensajería: ${deliveryLabel}`, `• \u2705 Comisión del gestor: ${formatMoney(commission, currency)}`);
   }
   return lines.join('\n');
 }
