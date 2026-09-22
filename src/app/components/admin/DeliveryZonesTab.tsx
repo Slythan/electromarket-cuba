@@ -17,6 +17,7 @@ export default function DeliveryZonesTab() {
   const [editing, setEditing] = useState<DeliveryZone | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [detail, setDetail] = useState('');
   const [loaded, setLoaded] = useState(false);
 
   const loadZones = useCallback(() => fetchAllDeliveryZones(), []);
@@ -28,6 +29,7 @@ export default function DeliveryZonesTab() {
       await reloadDeliveryZones();
     } catch (err) {
       setError(translateError(err instanceof Error ? err.message : undefined));
+      setDetail(err instanceof Error ? err.message : '');
     } finally {
       setLoaded(true);
     }
@@ -38,7 +40,11 @@ export default function DeliveryZonesTab() {
     let active = true;
     loadZones()
       .then((rows) => active && setZones(rows))
-      .catch((err) => active && setError(translateError(err instanceof Error ? err.message : undefined)))
+      .catch((err) => {
+        if (!active) return;
+        setError(translateError(err instanceof Error ? err.message : undefined));
+        setDetail(err instanceof Error ? err.message : '');
+      })
       .finally(() => active && setLoaded(true));
     return () => {
       active = false;
@@ -48,6 +54,7 @@ export default function DeliveryZonesTab() {
   const reset = () => {
     setEditing(null);
     setError('');
+    setDetail('');
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -62,6 +69,7 @@ export default function DeliveryZonesTab() {
 
     setBusy(true);
     setError('');
+    setDetail('');
     try {
       await saveDeliveryZone({ municipality, price: Math.round(price * 100) / 100, sortOrder, visible: form.get('visible') === 'on' }, editing?.id);
       await refresh();
@@ -69,6 +77,7 @@ export default function DeliveryZonesTab() {
       toast('Municipio guardado');
     } catch (err) {
       setError(translateError(err instanceof Error ? err.message : undefined));
+      setDetail(err instanceof Error ? err.message : '');
     } finally {
       setBusy(false);
     }
@@ -82,6 +91,7 @@ export default function DeliveryZonesTab() {
       toast('Municipio eliminado');
     } catch (err) {
       setError(translateError(err instanceof Error ? err.message : undefined));
+      setDetail(err instanceof Error ? err.message : '');
     }
   };
 
@@ -116,6 +126,7 @@ export default function DeliveryZonesTab() {
           <span>Disponible</span>
         </label>
         <p className="form__error">{error}</p>
+        {detail && <p className="field__hint">Detalle técnico: {detail}</p>}
         <div className="banner-form__actions">
           <Button type="submit" disabled={busy}>{busy ? 'Guardando…' : editing ? 'Guardar cambios' : 'Añadir municipio'}</Button>
           {editing && <Button type="button" variant="ghost" onClick={reset}>Cancelar</Button>}
@@ -131,8 +142,8 @@ export default function DeliveryZonesTab() {
         <p className="muted">Cargando municipios…</p>
       ) : zones.length === 0 ? (
         <div className="note">
-          Todavía no hay municipios. Ejecuta <code>supabase_delivery.sql</code> para cargar los 15 municipios de La Habana,
-          o añádelos con el formulario de arriba.
+          Todavía no hay municipios. Ejecuta <code>supabase_delivery.sql</code> <strong>completo</strong> (sin seleccionar
+          texto) en el SQL Editor de Supabase: crea la tabla, sus permisos y carga los 15 municipios de La Habana.
         </div>
       ) : (
         <div className="rows">

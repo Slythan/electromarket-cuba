@@ -12,12 +12,16 @@ export function translateError(message?: string): string {
   if (/already registered|already been registered/i.test(m)) return 'Ya existe una cuenta con ese correo.';
   if (/Email not confirmed/i.test(m)) return 'Confirma tu correo antes de ingresar.';
   if (/rate limit/i.test(m)) return 'Demasiados intentos. Espera unos minutos.';
-  if (/row-level security|permission denied/i.test(m)) return 'No tienes permiso para esta acción.';
+  if (/row-level security|permission denied/i.test(m)) {
+    if (/delivery_zones/i.test(m))
+      return 'Faltan las políticas de la tabla de mensajería: ejecuta supabase_delivery.sql completo en el SQL Editor de Supabase.';
+    return 'No tienes permiso para esta acción.';
+  }
+  if (/could not find the table .*delivery_zones|delivery_zones.*schema cache/i.test(m))
+    return 'Falta la tabla de mensajería: ejecuta supabase_delivery.sql en el SQL Editor de Supabase.';
   if (/column .*image_urls.* does not exist/i.test(m))
     return 'Falta actualizar la base de datos: ejecuta supabase_products.sql en el SQL Editor de Supabase.';
   if (/products_image_urls_max/i.test(m)) return 'Cada producto admite como máximo 3 fotos.';
-  if (/delivery_zones|delivery_zone/i.test(m) && /does not exist|schema cache/i.test(m))
-    return 'Falta la tabla de mensajería: ejecuta supabase_delivery.sql en el SQL Editor de Supabase.';
   if (/Password should be|weak/i.test(m)) return 'La contraseña es demasiado débil (mínimo 6 caracteres).';
   if (/Failed to fetch|NetworkError/i.test(m)) return 'Sin conexión con el servidor. Revisa tu internet.';
   return m || 'Ocurrió un error desconocido.';
