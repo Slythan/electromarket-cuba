@@ -56,5 +56,8 @@ export function buildWhatsAppUrl({ number, storeName, currency, customer, items,
     lines.push('', '📊 RESUMEN DEL GESTOR:', `• 🏷️ Precio de catálogo: ${formatMoney(catalogTotal, currency)}`, `• 🤝 Precio negociado: ${formatMoney(negotiatedTotal, currency)}`, `• 📈 Comisión base: ${formatMoney(commissionBase, currency)}`, `• 🚚 Mensajería: ${formatMoney(deliveryFee, currency)}`, `• ✅ Comisión final: ${formatMoney(commission, currency)}`);
   }
   const message = lines.join('\n');
-  return `https://wa.me/${onlyDigits(number)}?${new URLSearchParams({ text: message }).toString()}`;
+  // encodeURIComponent: los espacios viajan como %20 y los emojis como UTF-8 correcto.
+  // Con URLSearchParams los espacios se enviaban como '+' y WhatsApp los mostraba
+  // literales (+NUEVO+PEDIDO+), lo que distorsionaba todo el mensaje.
+  return `https://wa.me/${onlyDigits(number)}?text=${encodeURIComponent(message)}`;
 }
