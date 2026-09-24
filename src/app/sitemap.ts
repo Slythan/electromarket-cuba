@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/seo';
+import { ARTICLES } from '@/lib/articles';
 import { fetchProducts } from '@/services/products';
 import { fetchCategories } from '@/services/categories';
 
@@ -10,11 +11,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '',
     '/privacy',
     '/terms',
+    '/guias',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: route === '' ? 1 : 0.5,
+  }));
+
+  const articleRoutes: MetadataRoute.Sitemap = ARTICLES.map((article) => ({
+    url: `${baseUrl}/guias/${article.slug}`,
+    lastModified: new Date(article.date),
+    changeFrequency: 'monthly',
+    priority: 0.7,
   }));
 
   let categoryRoutes: MetadataRoute.Sitemap = [];
@@ -46,5 +55,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Igual que arriba: no romper el build por un fallo de red.
   }
 
-  return [...staticRoutes, ...categoryRoutes, ...productRoutes];
+  return [...staticRoutes, ...articleRoutes, ...categoryRoutes, ...productRoutes];
 }

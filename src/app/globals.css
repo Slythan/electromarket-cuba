@@ -143,6 +143,27 @@ h1, h2, h3 { line-height: 1.2; }
   min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
   background: #e5484d; color: #fff; font-size: 0.72rem; font-weight: 700; line-height: 20px; text-align: center;
 }
+
+/* ---------- Guías / Blog ---------- */
+.guides-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin: 26px 0 40px; }
+.guide-card {
+  display: flex; flex-direction: column; gap: 10px; padding: 22px;
+  border: 1px solid var(--border); border-radius: 16px; background: var(--surface);
+  text-decoration: none; color: inherit;
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease;
+}
+.guide-card:hover { border-color: var(--accent); box-shadow: 0 10px 26px rgba(17, 105, 190, 0.12); transform: translateY(-2px); }
+.guide-card h2 { margin: 0; font-size: 1.15rem; letter-spacing: -0.02em; }
+.guide-card p { margin: 0; font-size: 0.9rem; }
+.guide-card__tag {
+  align-self: flex-start; padding: 3px 10px; border-radius: 999px;
+  background: #e7f2fc; color: var(--accent); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.guide-card__meta { margin-top: auto; color: var(--muted); font-size: 0.78rem; }
+.guide-cta { margin: 28px 0; }
+.guide-related { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--border); }
+.legal-page ul { padding-left: 22px; line-height: 1.7; }
+.legal-page li { margin-bottom: 6px; }
 .category-nav__all { color: var(--accent) !important; }
 .category-nav__offer { color: #f47a27 !important; }
 
