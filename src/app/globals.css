@@ -108,6 +108,41 @@ h1, h2, h3 { line-height: 1.2; }
 .category-nav__inner { display: flex; align-items: center; gap: 28px; min-height: 42px; overflow-x: auto; white-space: nowrap; }
 .category-nav a { padding: 6px 9px; border-radius: 7px; color: #26384d; font-size: 0.78rem; font-weight: 600; text-decoration: none; transition: background-color 0.2s ease, color 0.2s ease; }
 .category-nav a:hover, .category-nav a.is-active { background: #e7f2fc; color: var(--accent) !important; }
+
+/* ---------- Barra de navegación del panel admin ---------- */
+.admin-nav {
+  position: sticky; top: calc(58px + env(safe-area-inset-top, 0px)); z-index: 19;
+  border-top: 1px solid #edf1f6; border-bottom: 1px solid #edf1f6;
+  background: rgba(255, 255, 255, 0.96); box-shadow: 0 4px 12px rgba(31, 66, 101, 0.05);
+  backdrop-filter: blur(14px);
+}
+.admin-nav__inner {
+  display: flex; align-items: center; gap: 6px; min-height: 52px;
+  overflow-x: auto; white-space: nowrap; scrollbar-width: none;
+  -webkit-overflow-scrolling: touch; scroll-padding-inline: 24px;
+  padding-block: 6px;
+  /* Difuminado en los bordes: indica que hay más contenido deslizando */
+  mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+}
+.admin-nav__inner::-webkit-scrollbar { display: none; }
+.admin-nav__link {
+  display: inline-flex; position: relative; align-items: center; gap: 7px; flex: none;
+  min-height: 38px; padding: 8px 14px; border: 1px solid transparent; border-radius: 9px;
+  background: none; color: #26384d; font-size: 0.84rem; font-weight: 700; cursor: pointer;
+  scroll-snap-align: start;
+  transition: background-color 0.22s ease, border-color 0.22s ease, color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
+}
+.admin-nav__inner { scroll-snap-type: x proximity; }
+/* Espacio extra al final para que la última pestaña nunca quede cortada */
+.admin-nav__inner::after { content: ''; flex: none; width: 8px; }
+.admin-nav__link:hover { border-color: #cfe1f3; background: #f1f7fc; color: var(--accent); transform: translateY(-1px); }
+.admin-nav__link.is-active { border-color: var(--accent); background: #e7f2fc; color: var(--accent); box-shadow: 0 5px 14px rgba(17, 105, 190, 0.1); }
+.admin-nav__icon { font-size: 1rem; line-height: 1; }
+.admin-nav__badge {
+  min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px;
+  background: #e5484d; color: #fff; font-size: 0.72rem; font-weight: 700; line-height: 20px; text-align: center;
+}
 .category-nav__all { color: var(--accent) !important; }
 .category-nav__offer { color: #f47a27 !important; }
 
