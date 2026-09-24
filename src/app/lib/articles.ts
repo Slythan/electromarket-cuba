@@ -7,6 +7,7 @@ export type ArticleBlock =
   | { type: 'p'; text: string }
   | { type: 'h2'; text: string }
   | { type: 'ul'; items: string[] }
+  | { type: 'img'; src: string; alt: string }
   | { type: 'cta'; href: string; label: string };
 
 export interface Article {
@@ -16,7 +17,55 @@ export interface Article {
   date: string; // ISO
   readingTime: string;
   tag: string;
+  coverImage?: string | null;
   blocks: ArticleBlock[];
+}
+
+/**
+ * Convierte el texto con marcadores del editor del panel en bloques renderizables.
+ * Sintaxis:
+ *   ## Título            -> encabezado
+ *   - item               -> lista (líneas consecutivas)
+ *   [imagen]URL[/imagen] -> imagen
+ *   [boton]URL|Texto[/boton] -> botón/enlace destacado
+ *   Resto                -> párrafos (separados por líneas en blanco)
+ */
+export function parseGuideContent(content: string): ArticleBlock[] {
+  const blocks: ArticleBlock[] = [];
+  const chunks = content.split(/\n\s*\n/);
+
+  for (const chunk of chunks) {
+    const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) continue;
+
+    const listItems = lines.filter((l) => l.startsWith('- ')).map((l) => l.slice(2).trim());
+    if (listItems.length === lines.length) {
+      blocks.push({ type: 'ul', items: listItems });
+      continue;
+    }
+
+    for (const line of lines) {
+      if (line.startsWith('## ')) {
+        blocks.push({ type: 'h2', text: line.slice(3).trim() });
+      } else if (line.startsWith('[imagen]') && line.endsWith('[/imagen]')) {
+        const src = line.slice(8, -9).trim();
+        if (src) blocks.push({ type: 'img', src, alt: '' });
+      } else if (line.startsWith('[boton]') && line.endsWith('[/boton]')) {
+        const inner = line.slice(7, -8);
+        const [href, label] = inner.split('|').map((s) => s.trim());
+        if (href && label) blocks.push({ type: 'cta', href, label });
+      } else {
+        blocks.push({ type: 'p', text: line });
+      }
+    }
+  }
+  return blocks;
+}
+
+/** Estima el tiempo de lectura a partir del texto plano. */
+export function estimateReadingTime(text: string): string {
+  const words = text.split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.round(words / 180))} min`;
 }
 
 export const ARTICLES: Article[] = [

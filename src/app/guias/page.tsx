@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ARTICLES } from '@/lib/articles';
+import { ARTICLES, type Article } from '@/lib/articles';
+import { fetchPublishedGuides } from '@/services/guides';
 import { SITE_URL } from '@/lib/seo';
+
+export const revalidate = 300; // Se regenera cada 5 min con las guías nuevas del panel.
 
 export const metadata: Metadata = {
   title: 'Guías y consejos',
@@ -10,7 +13,16 @@ export const metadata: Metadata = {
   alternates: { canonical: `${SITE_URL}/guias` },
 };
 
-export default function GuiasPage() {
+export default async function GuiasPage() {
+  // Guías del panel (Supabase); si falla o está vacío, se muestran las estáticas.
+  let articles: Article[] = ARTICLES;
+  try {
+    const remote = await fetchPublishedGuides();
+    if (remote.length) articles = [...remote, ...ARTICLES];
+  } catch {
+    // Respaldo silencioso con el contenido estático.
+  }
+
   return (
     <div className="container legal-page">
       <Link className="legal-page__back" href="/">← Volver a la tienda</Link>
@@ -21,8 +33,9 @@ export default function GuiasPage() {
       </p>
 
       <div className="guides-grid">
-        {ARTICLES.map((article) => (
+        {articles.map((article) => (
           <Link key={article.slug} href={`/guias/${article.slug}`} className="guide-card">
+            {article.coverImage && <img src={article.coverImage} alt={article.title} className="guide-card__cover" />}
             <span className="guide-card__tag">{article.tag}</span>
             <h2>{article.title}</h2>
             <p className="muted">{article.excerpt}</p>

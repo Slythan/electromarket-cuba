@@ -13,8 +13,9 @@ import CategoriesTab from '@/components/admin/CategoriesTab';
 import DeliveryZonesTab from './DeliveryZonesTab';
 import ManagersTab from './ManagersTab';
 import UsersTab from './UsersTab';
+import GuidesTab from './GuidesTab';
 
-type Tab = 'products' | 'orders' | 'banners' | 'categories' | 'delivery' | 'managers' | 'users' | 'config';
+type Tab = 'products' | 'orders' | 'banners' | 'categories' | 'delivery' | 'managers' | 'users' | 'guides' | 'config';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'products', label: 'Productos', icon: '📦' },
@@ -24,6 +25,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'categories', label: 'Categorías', icon: '🗂️' },
   { id: 'delivery', label: 'Mensajería', icon: '🚚' },
   { id: 'users', label: 'Usuarios y solicitudes', icon: '👥' },
+  { id: 'guides', label: 'Guías', icon: '📝' },
   { id: 'config', label: 'Configuración', icon: '⚙️' },
 ];
 
@@ -105,6 +107,7 @@ export default function AdminPanel() {
         {tab === 'categories' && <CategoriesTab />}
         {tab === 'delivery' && <DeliveryZonesTab />}
         {tab === 'users' && <UsersTab />}
+        {tab === 'guides' && <GuidesTab />}
         {tab === 'config' && <SettingsTab />}
       </div>
     </>

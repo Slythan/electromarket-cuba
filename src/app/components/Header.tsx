@@ -87,6 +87,7 @@ export default function Header() {
         <div className="container main-nav__inner">
           <div className="main-nav__links">
             <Link href="/" className={navLink(isStoreRoute)} aria-current={isStoreRoute ? 'page' : undefined}>Tienda</Link>
+            <Link href="/guias" className={navLink(pathname.startsWith('/guias'))} aria-current={pathname.startsWith('/guias') ? 'page' : undefined}>Guías</Link>
             {user && <Link href="/orders" className={navLink(pathname.startsWith('/orders'))} aria-current={pathname.startsWith('/orders') ? 'page' : undefined}>Órdenes</Link>}
             {user && <Link href="/account" className={navLink(pathname.startsWith('/account'))} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>Cuenta</Link>}
             {isAdmin && <Link href="/admin" className={navLink(pathname.startsWith('/admin'), 'main-nav__link--admin')} aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>Panel Admin</Link>}

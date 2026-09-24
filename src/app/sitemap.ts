@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/seo';
 import { ARTICLES } from '@/lib/articles';
+import { fetchPublishedGuides } from '@/services/guides';
 import { fetchProducts } from '@/services/products';
 import { fetchCategories } from '@/services/categories';
 
@@ -19,12 +20,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: route === '' ? 1 : 0.5,
   }));
 
-  const articleRoutes: MetadataRoute.Sitemap = ARTICLES.map((article) => ({
+  let articleRoutes: MetadataRoute.Sitemap = ARTICLES.map((article) => ({
     url: `${baseUrl}/guias/${article.slug}`,
     lastModified: new Date(article.date),
     changeFrequency: 'monthly',
     priority: 0.7,
   }));
+
+  try {
+    const remoteGuides = await fetchPublishedGuides();
+    articleRoutes = [
+      ...remoteGuides.map((g) => ({
+        url: `${baseUrl}/guias/${g.slug}`,
+        lastModified: new Date(g.date),
+        changeFrequency: 'monthly' as const,
+        priority: 0.7,
+      })),
+      ...articleRoutes,
+    ];
+  } catch {
+    // Si Supabase no responde, el sitemap incluye al menos las guías estáticas.
+  }
 
   let categoryRoutes: MetadataRoute.Sitemap = [];
   let productRoutes: MetadataRoute.Sitemap = [];

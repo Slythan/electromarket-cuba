@@ -164,6 +164,12 @@ h1, h2, h3 { line-height: 1.2; }
 .guide-related { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--border); }
 .legal-page ul { padding-left: 22px; line-height: 1.7; }
 .legal-page li { margin-bottom: 6px; }
+.guide-card__cover { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; margin: -6px 0 4px; }
+.guide-hero { width: 100%; max-height: 420px; object-fit: cover; border-radius: 16px; margin: 18px 0 8px; }
+.guide-figure { margin: 22px 0; }
+.guide-figure img { width: 100%; border-radius: 14px; border: 1px solid var(--border); }
+.guide-content { font-family: inherit; line-height: 1.6; }
+.guide-cover-preview { max-width: 320px; border-radius: 10px; margin-top: 8px; }
 .category-nav__all { color: var(--accent) !important; }
 .category-nav__offer { color: #f47a27 !important; }
 
