@@ -4,7 +4,7 @@ import { ARTICLES, type Article } from '@/lib/articles';
 import { fetchPublishedGuides } from '@/services/guides';
 import { SITE_URL } from '@/lib/seo';
 
-export const revalidate = 300; // Se regenera cada 5 min con las guías nuevas del panel.
+export const dynamic = 'force-dynamic'; // Siempre fresco: las guías nuevas del panel salen al instante.
 
 export const metadata: Metadata = {
   title: 'Guías y consejos',

@@ -5,6 +5,8 @@ import { fetchPublishedGuides } from '@/services/guides';
 import { fetchProducts } from '@/services/products';
 import { fetchCategories } from '@/services/categories';
 
+export const dynamic = 'force-dynamic'; // El sitemap siempre refleja el catálogo y las guías actuales.
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = SITE_URL;
 

@@ -22,38 +22,52 @@ export interface Article {
 }
 
 /**
- * Convierte el texto con marcadores del editor del panel en bloques renderizables.
- * Sintaxis:
- *   ## Título            -> encabezado
- *   - item               -> lista (líneas consecutivas)
- *   [imagen]URL[/imagen] -> imagen
- *   [boton]URL|Texto[/boton] -> botón/enlace destacado
- *   Resto                -> párrafos (separados por líneas en blanco)
+ * Convierte el texto del editor en bloques renderizables.
+ * Compatible con Markdown estándar (lo que entregan las IAs) y con los marcadores propios:
+ *   # Título / ## Título / ### Título   -> encabezado
+ *   - item / * item / 1. item           -> lista (líneas consecutivas)
+ *   ![alt](url)                          -> imagen
+ *   [imagen]URL[/imagen]                 -> imagen (marcador del botón del panel)
+ *   [Texto](url) sola en una línea       -> botón/enlace destacado
+ *   [boton]URL|Texto[/boton]             -> botón (marcador propio)
+ *   **negrita** y [enlaces](url) dentro del texto se renderizan en línea.
+ *   Párrafos separados por líneas en blanco.
  */
 export function parseGuideContent(content: string): ArticleBlock[] {
   const blocks: ArticleBlock[] = [];
   const chunks = content.split(/\n\s*\n/);
 
+  const isListItem = (l: string) => /^[-*•]\s+/.test(l) || /^\d+[.)]\s+/.test(l);
+  const stripMarker = (l: string) => l.replace(/^[-*•]\s+|^\d+[.)]\s+/, '').trim();
+
   for (const chunk of chunks) {
     const lines = chunk.split('\n').map((l) => l.trim()).filter(Boolean);
     if (!lines.length) continue;
 
-    const listItems = lines.filter((l) => l.startsWith('- ')).map((l) => l.slice(2).trim());
+    // Bloque de lista: todas las líneas son viñetas o numeración.
+    const listItems = lines.filter(isListItem).map(stripMarker);
     if (listItems.length === lines.length) {
       blocks.push({ type: 'ul', items: listItems });
       continue;
     }
 
     for (const line of lines) {
-      if (line.startsWith('## ')) {
-        blocks.push({ type: 'h2', text: line.slice(3).trim() });
+      const imgMd = line.match(/^!\[(.*?)\]\((.+?)\)$/);
+      const linkMd = line.match(/^\[(.+?)\]\((https?:\/\/.+?|\/.+?)\)$/);
+
+      if (/^#{1,6}\s+/.test(line)) {
+        blocks.push({ type: 'h2', text: line.replace(/^#{1,6}\s+/, '').replace(/\*\*/g, '').trim() });
       } else if (line.startsWith('[imagen]') && line.endsWith('[/imagen]')) {
         const src = line.slice(8, -9).trim();
         if (src) blocks.push({ type: 'img', src, alt: '' });
+      } else if (imgMd) {
+        blocks.push({ type: 'img', src: imgMd[2], alt: imgMd[1] });
       } else if (line.startsWith('[boton]') && line.endsWith('[/boton]')) {
         const inner = line.slice(7, -8);
         const [href, label] = inner.split('|').map((s) => s.trim());
         if (href && label) blocks.push({ type: 'cta', href, label });
+      } else if (linkMd) {
+        blocks.push({ type: 'cta', href: linkMd[2], label: linkMd[1] });
       } else {
         blocks.push({ type: 'p', text: line });
       }

@@ -222,7 +222,7 @@ export default function GuidesTab() {
 
           <Field
             label="Contenido"
-            hint={'Párrafos separados por línea en blanco. Marcadores: "## Título" para encabezados, "- item" para listas, "[boton]URL|Texto[/boton]" para botones. Usa el botón de abajo para insertar imágenes donde esté el cursor.'}
+            hint={'Compatible con Markdown: puedes copiar y pegar directamente el texto que te entregue una IA. Se admiten: ## Títulos, - listas, 1. listas numeradas, **negritas**, [enlaces](url), ![imagenes](url). Usa el botón de abajo para subir e insertar imágenes donde esté el cursor.'}
           >
             <textarea
               ref={contentRef}
