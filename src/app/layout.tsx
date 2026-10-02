@@ -15,13 +15,29 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
-  const organizationJsonLd = {
+  const siteJsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    'name': SITE_NAME,
-    'url': SITE_URL,
-    'description': SITE_DESCRIPTION,
-    'logo': `${SITE_URL}/icon.svg`,
+    '@graph': [
+      {
+        '@type': 'Organization',
+        '@id': `${SITE_URL}/#organization`,
+        'name': SITE_NAME,
+        'url': SITE_URL,
+        'description': SITE_DESCRIPTION,
+        'logo': `${SITE_URL}/icon.svg`,
+        'areaServed': [
+          { '@type': 'City', 'name': 'La Habana' },
+          { '@type': 'Country', 'name': 'Cuba' },
+        ],
+      },
+      {
+        '@type': 'WebSite',
+        '@id': `${SITE_URL}/#website`,
+        'name': SITE_NAME,
+        'url': SITE_URL,
+        'publisher': { '@id': `${SITE_URL}/#organization` },
+      },
+    ],
   };
 
   return (
@@ -29,7 +45,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
         />
       </head>
       <body>

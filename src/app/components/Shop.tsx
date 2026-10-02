@@ -6,9 +6,11 @@ import ProductGrid from './ProductGrid';
 import HeroCarousel from './HeroCarousel';
 import CategoryShowcase from './CategoryShowcase';
 import StoreHighlights from './StoreHighlights';
+import type { Category, Product } from '@/lib/types';
 
-export default function Shop() {
-  const { settings, banners, categories } = useStore();
+export default function Shop({ initialProducts, initialCategories }: { initialProducts: Product[]; initialCategories: Category[] }) {
+  const { settings, banners, categories: storeCategories, loading } = useStore();
+  const categories = loading ? initialCategories : storeCategories;
   const searchParams = useSearchParams();
   const query = searchParams.get('q') ?? '';
 
@@ -28,10 +30,10 @@ export default function Shop() {
 
       <div id="categorias"><CategoryShowcase categories={categories} /></div>
 
-      <section id="catalogo" className="catalog-section"><div className="catalog-section__heading"><div><span className="eyebrow">SELECCIÓN ELECTROMARKET</span><h2>Productos destacados</h2></div><span className="catalog-section__arrow">Ver destacados　→</span></div><ProductGrid query={query} /></section>
+      <section id="catalogo" className="catalog-section"><div className="catalog-section__heading"><div><span className="eyebrow">Selección ElectroMarketCuba</span><h2>Productos destacados</h2></div><span className="catalog-section__arrow">Ver destacados　→</span></div><ProductGrid query={query} initialProducts={initialProducts} /></section>
       {categories.length === 0 && <div className="empty storefront-empty">El catálogo se está preparando. Pronto tendremos productos disponibles.</div>}
       <StoreHighlights />
-      <section className="about-band"><div className="about-band__visual"><img src="/about-electromarket.png" alt="ElectroMarket, compromiso y calidad en productos electrónicos" /></div><div><span className="eyebrow">COMPRA CON CONFIANZA</span><h2>Tecnología que mejora la vida en Cuba</h2><p>En ElectroMarket seleccionamos productos útiles, duraderos y adaptados a tus necesidades. Nuestro equipo te acompaña con información clara y soporte humano.</p><div className="about-stats"><strong>+2 500<small>clientes</small></strong><strong>100%<small>compra segura</small></strong><strong>Soporte<small>local</small></strong></div></div></section>
+      <section className="about-band"><div className="about-band__visual"><img src="/about-electromarket.png" alt="ElectroMarketCuba, compromiso y calidad en productos electrónicos" /></div><div><span className="eyebrow">COMPRA CON CONFIANZA</span><h2>Tecnología que mejora la vida en Cuba</h2><p>En ElectroMarketCuba seleccionamos productos útiles, duraderos y adaptados a tus necesidades. Nuestro equipo te acompaña con información clara y soporte humano.</p><div className="about-stats"><strong>+2 500<small>clientes</small></strong><strong>100%<small>compra segura</small></strong><strong>Soporte<small>local</small></strong></div></div></section>
     </div>
   );
 }

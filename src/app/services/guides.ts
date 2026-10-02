@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { parseGuideContent, estimateReadingTime, type Article } from '@/lib/articles';
+import { normalizeBrandText } from '@/lib/seo';
 
 const BUCKET = 'product-images';
 
@@ -27,15 +28,16 @@ export interface GuideInput {
 }
 
 export function mapGuide(row: GuideRow): Article {
+  const content = normalizeBrandText(row.content);
   return {
     slug: row.slug,
-    title: row.title,
-    excerpt: row.excerpt,
+    title: normalizeBrandText(row.title),
+    excerpt: normalizeBrandText(row.excerpt),
     date: row.created_at,
-    readingTime: estimateReadingTime(row.content),
-    tag: row.tag,
+    readingTime: estimateReadingTime(content),
+    tag: normalizeBrandText(row.tag),
     coverImage: row.cover_image,
-    blocks: parseGuideContent(row.content),
+    blocks: parseGuideContent(content),
   };
 }
 
@@ -69,17 +71,23 @@ export async function fetchAllGuides(): Promise<GuideRow[]> {
     .select('*')
     .order('created_at', { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []) as GuideRow[];
+  return ((data ?? []) as GuideRow[]).map((row) => ({
+    ...row,
+    title: normalizeBrandText(row.title),
+    excerpt: normalizeBrandText(row.excerpt),
+    tag: normalizeBrandText(row.tag),
+    content: normalizeBrandText(row.content),
+  }));
 }
 
 export async function saveGuide(input: GuideInput, id?: string): Promise<void> {
   const row = {
     slug: input.slug,
-    title: input.title,
-    excerpt: input.excerpt,
-    tag: input.tag,
+    title: normalizeBrandText(input.title),
+    excerpt: normalizeBrandText(input.excerpt),
+    tag: normalizeBrandText(input.tag),
     cover_image: input.coverImage,
-    content: input.content,
+    content: normalizeBrandText(input.content),
     published: input.published,
     updated_at: new Date().toISOString(),
   };

@@ -166,7 +166,7 @@ export default function AdminPanel() {
       <div className="container admin">
         <header className="admin__header">
           <div>
-            <span className="eyebrow">ELECTROMARKET · CONTROL</span>
+            <span className="eyebrow">ElectroMarketCuba · Control</span>
             <h1>Panel de administración</h1>
             <p className="muted">Gestiona el catálogo, las promociones y los pedidos desde un solo lugar.</p>
           </div>

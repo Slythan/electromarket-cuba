@@ -60,7 +60,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const sendToWhatsApp = (phone: string) => {
     if (cart.length === 0) return;
 
-    let message = "🛒 *Nuevo Pedido - ElectroMarket Cuba*\n\n";
+    let message = "🛒 *Nuevo Pedido - ElectroMarketCuba*\n\n";
     cart.forEach((item) => {
       message += `▪️ ${item.quantity}x ${item.name} - $${item.price} c/u\n`;
     });

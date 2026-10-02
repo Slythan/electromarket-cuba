@@ -62,7 +62,7 @@ export default async function AffiliatesPage() {
     <div className="container legal-page">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <Link className="legal-page__back" href="/">← Volver a la tienda</Link>
-      <span className="eyebrow">ELECTROMARKET · AFILIADOS</span>
+      <span className="eyebrow">ElectroMarketCuba · Afiliados</span>
       <h1>{article.title}</h1>
       <p className="legal-page__lead">{article.excerpt}</p>
       {article.coverImage && <img src={article.coverImage} alt={article.title} className="guide-hero" />}

@@ -6,7 +6,7 @@ const HIGHLIGHTS = [
 ];
 
 export default function StoreHighlights() {
-  return <section className="highlights" aria-label="Beneficios de ElectroMarket">
+  return <section className="highlights" aria-label="Beneficios de ElectroMarketCuba">
     {HIGHLIGHTS.map((highlight) => <article className="highlight" key={highlight.title}>
       <span className="highlight__icon" aria-hidden="true">{highlight.icon}</span>
       <div><strong>{highlight.title}</strong><p>{highlight.text}</p></div>

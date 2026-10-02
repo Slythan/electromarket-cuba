@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react';
 import { useStore } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import { onlyDigits, translateError } from '@/lib/format';
+import { SITE_NAME } from '@/lib/seo';
 import { updateSettings } from '@/services/settings';
 import Button from '../ui/Button';
 import Field from '../ui/Field';
@@ -17,18 +18,17 @@ export default function SettingsTab() {
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
-    const storeName = String(f.get('storeName') ?? '').trim();
     const currency = String(f.get('currency') ?? '').trim().toUpperCase();
     const whatsapp = onlyDigits(String(f.get('whatsapp') ?? ''));
 
-    if (!storeName || !currency) return setError('Completa nombre y moneda.');
+    if (!currency) return setError('Completa la moneda.');
     if (whatsapp && whatsapp.length < 8)
       return setError('El número de WhatsApp parece incompleto (incluye el código de país).');
 
     setBusy(true);
     setError('');
     try {
-      await updateSettings({ storeName, whatsapp, currency });
+      await updateSettings({ storeName: SITE_NAME, whatsapp, currency });
       await reloadSettings();
       toast('Configuración guardada');
     } catch (err) {
@@ -41,8 +41,8 @@ export default function SettingsTab() {
   return (
     <div className="settings-panel">
       <form className="form" onSubmit={onSubmit}>
-        <Field label="Nombre de la tienda">
-          <input className="input" type="text" name="storeName" maxLength={40} defaultValue={settings.storeName} required />
+        <Field label="Nombre oficial de la tienda" hint="El nombre oficial del sitio es ElectroMarketCuba.">
+          <input className="input" type="text" value={SITE_NAME} readOnly />
         </Field>
         <Field
           label="Número de WhatsApp que recibe los pedidos"

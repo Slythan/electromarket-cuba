@@ -259,7 +259,7 @@ export default function BannersTab() {
             <Field label="Tipografía"><select className="input" name="fontFamily" value={draftStyle.fontFamily} onChange={(event) => setDraftStyle((current) => ({ ...current, fontFamily: event.target.value as Banner['fontFamily'] }))}><option value="display">Display contundente</option><option value="clean">Limpia y moderna</option><option value="mono">Técnica monoespaciada</option></select></Field>
           </div>
           <div className="banner-live-preview" style={{ '--banner-title': draftStyle.titleColor, '--banner-subtitle': draftStyle.subtitleColor, '--banner-accent': draftStyle.accentColor } as CSSProperties}>
-            <span>ElectroMarket · selección</span><strong>{String((editing?.title || 'Tu título') || 'Tu título')}</strong><p>{String((editing?.subtitle || 'Descripción atractiva del producto') || 'Descripción atractiva del producto')}</p>{resolvedDestination && <small>El banner completo enlazará a {resolvedDestination}</small>}
+            <span>ElectroMarketCuba · selección</span><strong>{String((editing?.title || 'Tu título') || 'Tu título')}</strong><p>{String((editing?.subtitle || 'Descripción atractiva del producto') || 'Descripción atractiva del producto')}</p>{resolvedDestination && <small>El banner completo enlazará a {resolvedDestination}</small>}
           </div>
           <label className="switch"><input type="checkbox" name="visible" defaultChecked={editing?.visible ?? true} /><span>Mostrar en la tienda</span></label>
           <p className="form__error">{error}</p>

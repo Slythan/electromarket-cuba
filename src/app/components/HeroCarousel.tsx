@@ -24,11 +24,11 @@ export default function HeroCarousel({ banners }: { banners: Banner[] }) {
           const style = { '--banner-title': banner.titleColor, '--banner-subtitle': banner.subtitleColor, '--banner-accent': banner.accentColor, '--banner-font': fontFamily } as CSSProperties;
           const contents = <>
             <div className="hero-carousel__image-wrap">
-              <img className="hero-carousel__image" src={banner.imageUrl} alt={banner.title || 'Promoción ElectroMarket'} />
+              <img className="hero-carousel__image" src={banner.imageUrl} alt={banner.title || 'Promoción ElectroMarketCuba'} />
             </div>
             {(banner.title || banner.subtitle) && (
               <div className="hero-carousel__copy">
-                <span className="hero-carousel__label">ElectroMarket · selección</span>
+                <span className="hero-carousel__label">ElectroMarketCuba · selección</span>
                 {banner.title && <h2>{banner.title}</h2>}
                 {banner.subtitle && <p>{banner.subtitle}</p>}
                 <span className="hero-carousel__line" aria-hidden="true" />

@@ -10,7 +10,7 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          blue: '#0052cc',       // Azul principal de ElectromarketCuba
+          blue: '#0052cc',       // Azul principal de ElectroMarketCuba
           darkBlue: '#0033aa',   // Azul oscuro para hovers y botones
           lightBg: '#f4f7fc',    // Fondo grisáceo claro estilo Thor/Plantilla
           textDark: '#1e293b',   // Gris oscuro para descripciones y títulos

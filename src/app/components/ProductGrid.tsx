@@ -4,22 +4,25 @@ import { useMemo } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
-import type { Category } from '@/lib/types';
+import type { Category, Product } from '@/lib/types';
 import ProductCard from './ProductCard';
 
 interface ProductGridProps {
   query?: string;
   categoryId?: string;
   categories?: Category[];
+  initialProducts?: Product[];
   includeChildren?: boolean;
   /** Producto que no debe listarse (por ejemplo, el que ya se muestra arriba). */
   excludeId?: string;
 }
 
-export default function ProductGrid({ query = '', categoryId = '', categories = [], includeChildren = true, excludeId }: ProductGridProps) {
-  const { products, settings, loading } = useStore();
+export default function ProductGrid({ query = '', categoryId = '', categories = [], initialProducts, includeChildren = true, excludeId }: ProductGridProps) {
+  const { products: storeProducts, settings, loading } = useStore();
   const { isAdmin, profile } = useAuth();
   const cart = useCart();
+  const products = loading && initialProducts ? initialProducts : storeProducts;
+  const productsLoading = loading && initialProducts === undefined;
 
   const q = query.trim().toLowerCase();
   const categoryIds = useMemo(() => {
@@ -39,7 +42,7 @@ export default function ProductGrid({ query = '', categoryId = '', categories = 
     [products, q, categoryIds, excludeId]
   );
 
-  if (loading) return <p className="muted">Cargando productos…</p>;
+  if (productsLoading) return <p className="muted">Cargando productos…</p>;
 
   if (!list.length) {
     const message = q || categoryId

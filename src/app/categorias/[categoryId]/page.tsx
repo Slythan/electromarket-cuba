@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { redirect } from 'next/navigation';
-import { fetchCategories } from '@/services/categories';
+import { notFound, redirect } from 'next/navigation';
 import { baseMetadata, toMetaDescription, SITE_URL } from '@/lib/seo';
-import { categoryPath, routeEntityId } from '@/lib/slugs';
+import { categoryPath, productPath, routeEntityId } from '@/lib/slugs';
+import { fetchPublicCategories, fetchPublicProducts } from '@/lib/publicCatalog';
 import CategoryDetail from './CategoryDetail';
 
 type Props = {
@@ -11,20 +11,20 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { categoryId } = await params;
-  const categories = await fetchCategories();
+  const categories = await fetchPublicCategories();
   const category = categories.find((c) => c.id === routeEntityId(categoryId));
 
-  if (!category) return baseMetadata;
+  if (!category) return { ...baseMetadata, robots: { index: false, follow: true } };
 
-  const description = toMetaDescription(`Explora nuestra selección de ${category.name} en ElectroMarketCuba: tecnología, energía solar y movilidad eléctrica con entrega en Cuba.`);
+  const description = toMetaDescription(`Compra ${category.name} en La Habana y Cuba. Explora productos seleccionados por ElectroMarketCuba con entrega y asesoría local.`);
 
   return {
     ...baseMetadata,
-    title: category.name,
+    title: `${category.name} en Cuba`,
     description,
     openGraph: {
       ...baseMetadata.openGraph,
-      title: category.name,
+      title: `${category.name} en Cuba`,
       description,
       url: `${SITE_URL}${categoryPath(category)}`,
       images: category.imageUrl ? [{ url: category.imageUrl }] : [],
@@ -35,27 +35,37 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { categoryId } = await params;
-  const categories = await fetchCategories();
+  const [categories, products] = await Promise.all([fetchPublicCategories(), fetchPublicProducts()]);
   const category = categories.find((c) => c.id === routeEntityId(categoryId));
 
-  if (!category) {
-    return (
-      <div className="container category-page">
-        <h1>Categoría no encontrada</h1>
-        <p className="muted">La categoría solicitada no existe.</p>
-      </div>
-    );
-  }
+  if (!category) notFound();
 
   const canonicalPath = categoryPath(category);
   if (categoryId !== canonicalPath.split('/').at(-1)) redirect(canonicalPath);
+  const categoryIds = new Set([category.id, ...categories.filter((item) => item.parentId === category.id).map((item) => item.id)]);
+  const categoryProducts = products.filter((product) => categoryIds.has(product.categoryId ?? ''));
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     'name': category.name,
-    'description': `Explora nuestra selección de ${category.name} en ElectroMarketCuba.`,
+    'description': toMetaDescription(`Compra ${category.name} en La Habana y Cuba con ElectroMarketCuba. Productos seleccionados, entrega y asesoría local.`),
     'url': `${SITE_URL}${canonicalPath}`,
+    ...(categoryProducts.length > 0 ? {
+      'mainEntity': {
+        '@type': 'ItemList',
+        'numberOfItems': categoryProducts.length,
+        'itemListElement': categoryProducts.map((product, index) => ({
+          '@type': 'ListItem',
+          'position': index + 1,
+          'item': {
+            '@type': 'Product',
+            'name': product.name,
+            'url': `${SITE_URL}${productPath(product)}`,
+          },
+        })),
+      },
+    } : {}),
   };
 
   return (
@@ -64,7 +74,7 @@ export default async function CategoryPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CategoryDetail initialCategories={categories} initialCategory={category} />
+      <CategoryDetail initialCategories={categories} initialCategory={category} initialProducts={products} />
     </>
   );
 }

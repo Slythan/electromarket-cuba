@@ -20,7 +20,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/afiliados',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
-    lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: route === '' ? 1 : 0.5,
   }));
@@ -54,7 +53,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const categories = await fetchCategories();
     categoryRoutes = categories.map((cat) => ({
       url: `${baseUrl}${categoryPath(cat)}`,
-      lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
     }));
@@ -68,7 +66,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .filter((prod) => prod.visible)
       .map((prod) => ({
         url: `${baseUrl}${productPath(prod)}`,
-        lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.6,
       }));

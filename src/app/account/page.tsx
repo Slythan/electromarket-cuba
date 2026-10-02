@@ -313,7 +313,7 @@ export default function AccountPage() {
     <div className="container account">
       <header className="admin__header">
         <div>
-          <span className="eyebrow">ELECTROMARKET · CUENTA</span>
+          <span className="eyebrow">ElectroMarketCuba · Cuenta</span>
           <h1>Hola, {profile?.name || user.email}</h1>
           <p className="muted">Gestiona tus pedidos y los datos de acceso.</p>
         </div>

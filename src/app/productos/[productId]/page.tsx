@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { fetchProduct } from '@/services/products';
 import { baseMetadata, toMetaDescription, SITE_URL } from '@/lib/seo';
 import { productPath } from '@/lib/slugs';
+import { fetchSettings } from '@/services/settings';
 import ProductDetail from './ProductDetail';
 
 type Props = {
@@ -16,22 +17,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) return baseMetadata;
 
   const canonicalPath = productPath(product);
+  const description = toMetaDescription(product.description || `Compra ${product.name} en La Habana y Cuba con entrega y asesoría de ElectroMarketCuba.`);
 
   return {
     ...baseMetadata,
-    title: product.name,
-    description: toMetaDescription(product.description),
+    title: `${product.name} en Cuba`,
+    description,
     openGraph: {
       ...baseMetadata.openGraph,
-      title: product.name,
-      description: toMetaDescription(product.description),
+      title: `${product.name} en Cuba`,
+      description,
       url: `${SITE_URL}${canonicalPath}`,
       images: product.imageUrls.length > 0 ? [{ url: product.imageUrls[0] }] : [],
     },
     twitter: {
       ...baseMetadata.twitter,
-      title: product.name,
-      description: toMetaDescription(product.description),
+      title: `${product.name} en Cuba`,
+      description,
       images: product.imageUrls.length > 0 ? [product.imageUrls[0]] : [],
     },
     alternates: { canonical: canonicalPath },
@@ -55,6 +57,9 @@ export default async function ProductPage({ params }: Props) {
   const canonicalPath = productPath(product);
   if (productId !== canonicalPath.split('/').at(-1)) redirect(canonicalPath);
 
+  const currency = (await fetchSettings()).currency.trim().toUpperCase();
+  const hasSchemaCurrency = /^[A-Z]{3}$/.test(currency);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -65,9 +70,9 @@ export default async function ProductPage({ params }: Props) {
     'offers': {
       '@type': 'Offer',
       'url': `${SITE_URL}${canonicalPath}`,
-      'priceCurrency': 'USD', // Default, will be handled by store context in client
-      'price': product.price,
-      'availability': product.stock !== null && product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      ...(hasSchemaCurrency ? { priceCurrency: currency, price: product.price } : {}),
+      'availability': product.stock === null || product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      'itemCondition': 'https://schema.org/NewCondition',
     },
   };
 

@@ -27,7 +27,7 @@ export default async function GuiasPage() {
   return (
     <div className="container legal-page">
       <Link className="legal-page__back" href="/">← Volver a la tienda</Link>
-      <span className="eyebrow">ELECTROMARKET · APRENDE</span>
+      <span className="eyebrow">ElectroMarketCuba · Aprende</span>
       <h1>Guías y consejos</h1>
       <p className="legal-page__lead">
         Análisis prácticos para elegir bien: energía solar, estaciones de energía, movilidad eléctrica y tecnología para la vida en Cuba.

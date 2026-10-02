@@ -1,35 +1,42 @@
 import type { Metadata } from 'next';
 
 /** URL pública del sitio (configúrala en .env.local como NEXT_PUBLIC_SITE_URL). */
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://electromarket-cuba.vercel.app';
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://electromarket-cuba.vercel.app').replace(/\/+$/, '');
 
 export const SITE_NAME = 'ElectroMarketCuba';
 
+export function normalizeBrandText(value: string): string {
+  const normalizeCopy = (text: string) => text
+    .replace(/ElectroMarket\s+Cuba/gi, SITE_NAME)
+    .replace(/\bElectroMarket\b(?!Cuba)/gi, SITE_NAME);
+  const segments = value.split(/(\[[^\]]+\]\([^)]+\)|https?:\/\/[^\s)]+|\/[^\s)]+)/g);
+
+  return segments.map((segment) => {
+    const markdownLink = segment.match(/^(!?)\[([^\]]+)\]\(([^)]+)\)$/);
+    if (markdownLink) return `${markdownLink[1]}[${normalizeCopy(markdownLink[2])}](${markdownLink[3]})`;
+    if (/^(https?:\/\/|\/)/i.test(segment)) return segment;
+    return normalizeCopy(segment);
+  }).join('');
+}
+
 export const SITE_DESCRIPTION =
-  'Tienda online de tecnología, energía solar,estaciones de energía y movilidad eléctrica en Cuba. ' +
-  'Compra electrodomésticos, paneles solares, bicicletas eléctricas,estaciones de energía Ecoflow,Oukitel PEcrón y más, con entrega en La Habana.';
+  'ElectroMarketCuba: tienda online de tecnología, energía solar y movilidad eléctrica en Cuba. ' +
+  'Estaciones de energía, asesoría y entregas en La Habana.';
 
 export const SITE_KEYWORDS = [
-  'comprar tecnología en La Habana',
-  'tienda online La Habana',
-  'electrodomésticos La Habana',
-  'paneles solares La Habana',
-  'energía solar La Habana',
-  'movilidad eléctrica La Habana',
-  'bicicletas eléctricas Habana',
-  'comprar en La Habana',
-  'envíos a domicilio Cuba',
-  'estaciones de Energia en la Habana',
-  'Ecoflow en la Habana',
-  'Laptops y Móviles en la Habana',
-  'Celulares en la Habana',
-  'Televisores en la Habana',
-  'Oukitel en la Habana',
-  'Tienda de tecnología en La Habana',
-  'Tienda de tecnología en La Habana',
-  'Tienda de tecnología en Cuba',
-  'Pecrón en la Habana',
   'ElectroMarketCuba',
+  'tienda online de tecnología en Cuba',
+  'tecnología en La Habana',
+  'electrodomésticos en Cuba',
+  'estaciones de energía en Cuba',
+  'paneles solares en La Habana',
+  'energía solar en Cuba',
+  'movilidad eléctrica en Cuba',
+  'bicicletas eléctricas en La Habana',
+  'envíos a domicilio en Cuba',
+  'EcoFlow en La Habana',
+  'Oukitel en Cuba',
+  'Pecron en Cuba',
 ];
 
 /** Metadata base compartida por todas las páginas. */
