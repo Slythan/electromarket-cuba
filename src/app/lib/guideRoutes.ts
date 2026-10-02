@@ -1,0 +1,1 @@
+export const AFFILIATE_GUIDE_SLUG = 'como-ser-gestor-de-electromarket';

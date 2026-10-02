@@ -10,6 +10,7 @@ import { useToast } from '@/context/ToastContext';
 import { useUI } from '@/context/UIContext';
 import Button from './ui/Button';
 import CategoryDropdown from './CategoryDropdown';
+import { categoryPath, routeEntityId } from '@/lib/slugs';
 
 export default function Header() {
   const { user, profile, isAdmin, signOut } = useAuth();
@@ -22,7 +23,8 @@ export default function Header() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') ?? '');
-  const selectedCategoryId = pathname.startsWith('/categorias/') ? pathname.split('/')[2] : '';
+  const routeCategorySegment = pathname.startsWith('/categorias/') ? pathname.split('/')[2] : '';
+  const selectedCategoryId = routeCategorySegment ? routeEntityId(routeCategorySegment) : '';
   const isStoreRoute = pathname === '/' || pathname.startsWith('/categorias/') || pathname.startsWith('/productos/');
   const showStoreTools = !pathname.startsWith('/admin');
 
@@ -32,12 +34,14 @@ export default function Header() {
     event.preventDefault();
     const params = new URLSearchParams();
     if (query.trim()) params.set('q', query.trim());
-    const target = selectedCategoryId ? `/categorias/${selectedCategoryId}` : '/';
+    const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
+    const target = selectedCategory ? categoryPath(selectedCategory) : '/';
     router.push(`${target}${params.toString() ? `?${params.toString()}` : ''}#catalogo`);
   };
 
   const selectCategory = (categoryId: string) => {
-    const target = categoryId ? `/categorias/${categoryId}` : '/';
+    const category = categories.find((item) => item.id === categoryId);
+    const target = category ? categoryPath(category) : '/';
     const queryParam = query.trim() ? `?q=${encodeURIComponent(query.trim())}` : '';
     router.push(`${target}${queryParam}#catalogo`);
   };
@@ -88,6 +92,7 @@ export default function Header() {
           <div className="main-nav__links">
             <Link href="/" className={navLink(isStoreRoute)} aria-current={isStoreRoute ? 'page' : undefined}>Tienda</Link>
             <Link href="/guias" className={navLink(pathname.startsWith('/guias'))} aria-current={pathname.startsWith('/guias') ? 'page' : undefined}>Guías</Link>
+            <Link href="/afiliados" className={navLink(pathname.startsWith('/afiliados'))} aria-current={pathname.startsWith('/afiliados') ? 'page' : undefined}>Afiliados</Link>
             {user && <Link href="/orders" className={navLink(pathname.startsWith('/orders'))} aria-current={pathname.startsWith('/orders') ? 'page' : undefined}>Órdenes</Link>}
             {user && <Link href="/account" className={navLink(pathname.startsWith('/account'))} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>Cuenta</Link>}
             {isAdmin && <Link href="/admin" className={navLink(pathname.startsWith('/admin'), 'main-nav__link--admin')} aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>Panel Admin</Link>}
@@ -109,7 +114,7 @@ export default function Header() {
       </nav>
       {isStoreRoute && <nav className="category-nav" aria-label="Categorías principales"><div className="container category-nav__inner"><Link href="/" className={`category-nav__all${!selectedCategoryId ? ' is-active' : ''}`} aria-current={!selectedCategoryId ? 'page' : undefined}>▦　Todas las categorías</Link>{categories.filter((category) => !category.parentId).sort((a, b) => a.sortOrder - b.sortOrder || a.name.localeCompare(b.name)).slice(0, 6).map((category) => {
         const isActive = selectedCategoryId === category.id || categories.some((child) => child.id === selectedCategoryId && child.parentId === category.id);
-        return <Link href={`/categorias/${category.id}`} className={isActive ? 'is-active' : ''} aria-current={isActive ? 'page' : undefined} key={category.id}>{category.name}</Link>;
+        return <Link href={categoryPath(category)} className={isActive ? 'is-active' : ''} aria-current={isActive ? 'page' : undefined} key={category.id}>{category.name}</Link>;
       })}<Link className="category-nav__offer" href="/#catalogo">Ofertas</Link></div></nav>}
     </>
   );

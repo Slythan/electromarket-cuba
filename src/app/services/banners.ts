@@ -6,6 +6,7 @@ const BUCKET = 'product-images';
 
 export interface BannerInput {
   imageUrl: string;
+  linkUrl: string | null;
   title: string;
   subtitle: string;
   titleColor: string;
@@ -35,6 +36,7 @@ export async function fetchAllBanners(): Promise<Banner[]> {
 export async function saveBanner(input: BannerInput, id?: string): Promise<void> {
   const row = {
     image_url: input.imageUrl,
+    link_url: input.linkUrl,
     title: input.title,
     subtitle: input.subtitle,
     title_color: input.titleColor,

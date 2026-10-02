@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
 import { SITE_URL } from '@/lib/seo';
 import { ARTICLES } from '@/lib/articles';
+import { AFFILIATE_GUIDE_SLUG } from '@/lib/guideRoutes';
 import { fetchPublishedGuides } from '@/services/guides';
 import { fetchProducts } from '@/services/products';
 import { fetchCategories } from '@/services/categories';
+import { categoryPath, productPath } from '@/lib/slugs';
 
 export const dynamic = 'force-dynamic'; // El sitemap siempre refleja el catálogo y las guías actuales.
 
@@ -15,6 +17,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/privacy',
     '/terms',
     '/guias',
+    '/afiliados',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: new Date(),
@@ -32,7 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const remoteGuides = await fetchPublishedGuides();
     articleRoutes = [
-      ...remoteGuides.map((g) => ({
+      ...remoteGuides.filter((guide) => guide.slug !== AFFILIATE_GUIDE_SLUG).map((g) => ({
         url: `${baseUrl}/guias/${g.slug}`,
         lastModified: new Date(g.date),
         changeFrequency: 'monthly' as const,
@@ -50,7 +53,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const categories = await fetchCategories();
     categoryRoutes = categories.map((cat) => ({
-      url: `${baseUrl}/categorias/${cat.id}`,
+      url: `${baseUrl}${categoryPath(cat)}`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.8,
@@ -64,7 +67,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     productRoutes = products
       .filter((prod) => prod.visible)
       .map((prod) => ({
-        url: `${baseUrl}/productos/${prod.id}`,
+        url: `${baseUrl}${productPath(prod)}`,
         lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.6,

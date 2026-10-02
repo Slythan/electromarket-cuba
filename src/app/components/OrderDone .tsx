@@ -83,6 +83,11 @@ function OrderDoneContent({
           ✅
         </div>
         <h3>Tu pedido está casi listo</h3>
+        {done.orderId && (
+          <p className="muted">
+            Pedido n.º <strong>{done.orderId.slice(0, 8).toUpperCase()}</strong>
+          </p>
+        )}
         <p className="muted">
           Envía el mensaje por WhatsApp para confirmarlo con la tienda. Si no se abrió
           automáticamente, usa el botón de abajo.
@@ -134,9 +139,9 @@ function OrderDoneContent({
 }
 
 export default function OrderDone() {
-  const { done, close } = useUI();
+  const { done, dismissDone } = useUI();
   if (!done) return null;
   // El contenido se monta solo cuando hay un pedido: así "copied" y "previewOpen"
-  // empiezan limpios con cada pedido nuevo.
-  return <OrderDoneContent done={done} close={close} />;
+  // empiezan limpios con cada pedido nuevo. Al cerrar se descarta `done` por completo.
+  return <OrderDoneContent done={done} close={dismissDone} />;
 }

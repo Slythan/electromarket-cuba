@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ARTICLES, type Article } from '@/lib/articles';
+import { AFFILIATE_GUIDE_SLUG } from '@/lib/guideRoutes';
 import { fetchPublishedGuides } from '@/services/guides';
 import { SITE_URL } from '@/lib/seo';
 
@@ -18,7 +19,7 @@ export default async function GuiasPage() {
   let articles: Article[] = ARTICLES;
   try {
     const remote = await fetchPublishedGuides();
-    if (remote.length) articles = [...remote, ...ARTICLES];
+    if (remote.length) articles = [...remote.filter((article) => article.slug !== AFFILIATE_GUIDE_SLUG), ...ARTICLES];
   } catch {
     // Respaldo silencioso con el contenido estático.
   }

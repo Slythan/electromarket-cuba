@@ -120,6 +120,7 @@ export interface CustomerData {
 export interface Banner {
   id: string;
   imageUrl: string;
+  linkUrl: string | null;
   title: string;
   subtitle: string;
   titleColor: string;

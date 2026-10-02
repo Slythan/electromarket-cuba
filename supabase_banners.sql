@@ -2,6 +2,7 @@
 create table if not exists public.banners (
   id uuid primary key default gen_random_uuid(),
   image_url text not null,
+  link_url text,
   title text not null default '',
   subtitle text not null default '',
   title_color text not null default '#ffffff',
@@ -14,6 +15,7 @@ create table if not exists public.banners (
 );
 
 alter table public.banners add column if not exists title_color text not null default '#ffffff';
+alter table public.banners add column if not exists link_url text;
 alter table public.banners add column if not exists subtitle_color text not null default '#a9bdd8';
 alter table public.banners add column if not exists accent_color text not null default '#00d5f5';
 alter table public.banners add column if not exists font_family text not null default 'display';

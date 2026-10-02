@@ -64,61 +64,56 @@ export default function ManagersTab() {
 
   return (
     <div className="managers-admin">
-      <div className="banner-admin__intro">
-        <div>
-          <h2>Cuenta de gestores · {weekLabel(range)}</h2>
-          <p className="muted">
-            Comisión = precio pactado − costo del gestor − mensajería. Las entregas gratis (pedidos pequeños)
-            no descuentan mensajería. La semana va de lunes a domingo.
-          </p>
+      <header className="managers-admin__header">
+        <div className="managers-admin__intro">
+          <div><span className="eyebrow">LIQUIDACIONES</span><h2>Resumen de gestores</h2></div>
+          <p className="muted">Comisión = venta pactada − costo del gestor − mensajería.</p>
         </div>
-        <div className="managers-admin__week">
-          <Button variant="ghost" size="sm" onClick={() => changeWeek(-1)}>← Semana anterior</Button>
-          <span className="managers-admin__week-label">{weekOffset === 0 ? 'Semana actual' : weekLabel(range)}</span>
-          <Button variant="ghost" size="sm" disabled={weekOffset >= 0} onClick={() => changeWeek(1)}>Semana siguiente →</Button>
-          <Button variant="ghost" size="sm" disabled={loading} onClick={onReload}>{loading ? 'Actualizando…' : '↻'}</Button>
-        </div>
-      </div>
+        <nav className="managers-admin__week" aria-label="Seleccionar semana">
+          <Button variant="ghost" size="sm" onClick={() => changeWeek(-1)}>← Anterior</Button>
+          <div className="managers-admin__week-range" aria-live="polite">
+            <strong>{weekOffset === 0 ? 'Semana actual' : 'Semana seleccionada'}</strong>
+            <span>{weekLabel(range)}</span>
+          </div>
+          <Button variant="ghost" size="sm" disabled={weekOffset >= 0} onClick={() => changeWeek(1)}>Siguiente →</Button>
+          <Button variant="ghost" size="sm" disabled={loading} onClick={onReload}>{loading ? 'Actualizando…' : '↻ Actualizar'}</Button>
+        </nav>
+      </header>
 
       {error && <p className="form__error">{error}</p>}
 
-      <div className="stats">
-        <div className="stat"><b>{totals.orders}</b><span className="muted">Pedidos</span></div>
-        <div className="stat"><b>{money(totals.sales)}</b><span className="muted">Ventas pactadas</span></div>
-        <div className="stat"><b>{money(totals.commission)}</b><span className="muted">A pagar a gestores</span></div>
-        <div className="stat"><b>{money(totals.pending)}</b><span className="muted">Pendiente de cobro</span></div>
+      <div className="manager-kpis" aria-label="Totales de la semana">
+        <article className="manager-kpi manager-kpi--orders"><span>Pedidos de gestores</span><strong>{loading ? '…' : totals.orders}</strong><small>En el periodo seleccionado</small></article>
+        <article className="manager-kpi manager-kpi--sales"><span>Ventas pactadas</span><strong>{loading ? '…' : money(totals.sales)}</strong><small>Importe acordado con clientes</small></article>
+        <article className="manager-kpi manager-kpi--commission"><span>Comisión total</span><strong>{loading ? '…' : money(totals.commission)}</strong><small>Total correspondiente a gestores</small></article>
+        <article className="manager-kpi manager-kpi--collected"><span>Comisión cobrada</span><strong>{loading ? '…' : money(totals.collected)}</strong><small>Pedidos marcados como cobrados</small></article>
+        <article className="manager-kpi manager-kpi--pending"><span>Comisión pendiente</span><strong>{loading ? '…' : money(totals.pending)}</strong><small>Pedidos aún sin cobrar</small></article>
       </div>
 
       {loading ? (
-        <p className="muted">Cargando la semana…</p>
+        <div className="manager-list__state" aria-live="polite">Cargando los resultados de esta semana…</div>
       ) : summaries.length === 0 ? (
-        <div className="note">No hay pedidos de gestor en esta semana ({weekLabel(range)}).</div>
+        <div className="manager-list__state"><strong>No hay pedidos de gestor esta semana</strong><span>{weekLabel(range)} · Los totales se actualizarán cuando se registren pedidos.</span></div>
       ) : (
-        <div className="rows">
+        <section className="manager-list" aria-label="Resumen por gestor">
+          <div className="manager-list__heading" aria-hidden="true"><span>Gestor</span><span>Pedidos</span><span>Ventas pactadas</span><span>Comisión total</span><span>Cobrada</span><span>Pendiente</span></div>
           {summaries.map((summary, index) => (
-            <div className="prow manager-row" key={summary.name}>
-              <span className="manager-row__rank">{index + 1}</span>
-              <div className="prow__info">
-                <strong>{summary.name}</strong>
-                <span className="muted">
-                  {summary.orders} {summary.orders === 1 ? 'pedido' : 'pedidos'} · ventas {money(summary.sales)}
-                  {summary.pending > 0 && <> · pendiente {money(summary.pending)}</>}
-                  {summary.collected > 0 && <> · cobrado {money(summary.collected)}</>}
-                </span>
+            <article className="manager-card" key={summary.name}>
+              <div className="manager-card__person">
+                <span className="manager-row__rank">{index + 1}</span>
+                <div><strong>{summary.name}</strong><span>{summary.orders} {summary.orders === 1 ? 'pedido' : 'pedidos'}</span></div>
               </div>
-              <div className="manager-row__amount">
-                <small className="muted">Cobra esta semana</small>
-                <strong>{money(summary.commission)}</strong>
-              </div>
-            </div>
+              <div className="manager-card__metric"><small>Pedidos</small><strong>{summary.orders}</strong></div>
+              <div className="manager-card__metric"><small>Ventas pactadas</small><strong>{money(summary.sales)}</strong></div>
+              <div className="manager-card__metric manager-card__metric--commission"><small>Comisión total</small><strong>{money(summary.commission)}</strong></div>
+              <div className="manager-card__metric manager-card__metric--collected"><small>Cobrada</small><strong>{money(summary.collected)}</strong></div>
+              <div className="manager-card__metric manager-card__metric--pending"><small>Pendiente</small><strong>{money(summary.pending)}</strong></div>
+            </article>
           ))}
-        </div>
+        </section>
       )}
 
-      <p className="field__hint">
-        Rango consultado: {range.from.toLocaleDateString('es')} – {addDays(range.to, -1).toLocaleDateString('es')} ·{' '}
-        {orders.length} pedidos leídos. «Cobrado» son los pedidos con estado cobrada; el resto queda pendiente.
-      </p>
+      <p className="managers-admin__footnote">Periodo: {range.from.toLocaleDateString('es')} – {addDays(range.to, -1).toLocaleDateString('es')}. «Cobrada» corresponde a pedidos con estado cobrada; los demás importes quedan pendientes.</p>
     </div>
   );
 }

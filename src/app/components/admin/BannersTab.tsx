@@ -5,14 +5,17 @@ import { useStore } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import { fileToBlob } from '@/lib/image';
 import { translateError } from '@/lib/format';
+import { categoryPath, productPath, routeEntityId } from '@/lib/slugs';
 import { deleteBanner, fetchAllBanners, removeBannerImage, saveBanner, uploadBannerImage } from '@/services/banners';
 import type { Banner } from '@/lib/types';
 import Button from '../ui/Button';
 import Field from '../ui/Field';
 import Thumb from '../ui/thumb';
 
+type DestinationKind = 'none' | 'affiliates' | 'category' | 'product' | 'custom';
+
 export default function BannersTab() {
-  const { reloadBanners } = useStore();
+  const { reloadBanners, categories, products } = useStore();
   const toast = useToast();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [editing, setEditing] = useState<Banner | null>(null);
@@ -21,8 +24,28 @@ export default function BannersTab() {
   const [preview, setPreview] = useState('');
   const [blob, setBlob] = useState<Blob | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [destinationKind, setDestinationKind] = useState<DestinationKind>('none');
+  const [destinationId, setDestinationId] = useState('');
+  const [customDestination, setCustomDestination] = useState('');
   const [draftStyle, setDraftStyle] = useState({ titleColor: '#ffffff', subtitleColor: '#a9bdd8', accentColor: '#00d5f5', fontFamily: 'display' as Banner['fontFamily'] });
   const objectUrl = useRef<string | null>(null);
+  const sortedCategories = [...categories].sort((firstCategory, secondCategory) => firstCategory.sortOrder - secondCategory.sortOrder || firstCategory.name.localeCompare(secondCategory.name, 'es'));
+  const visibleProducts = products.filter((product) => product.visible).sort((firstProduct, secondProduct) => {
+    const firstCategory = categories.find((category) => category.id === firstProduct.categoryId)?.name ?? '';
+    const secondCategory = categories.find((category) => category.id === secondProduct.categoryId)?.name ?? '';
+    return firstCategory.localeCompare(secondCategory, 'es') || firstProduct.name.localeCompare(secondProduct.name, 'es');
+  });
+  const selectedCategory = categories.find((category) => category.id === destinationId);
+  const selectedProduct = visibleProducts.find((product) => product.id === destinationId);
+  const resolvedDestination = destinationKind === 'affiliates'
+    ? '/afiliados'
+    : destinationKind === 'category' && selectedCategory
+      ? categoryPath(selectedCategory)
+      : destinationKind === 'product' && selectedProduct
+        ? productPath(selectedProduct)
+        : destinationKind === 'custom'
+          ? customDestination.trim()
+          : '';
 
   const load = async () => {
     try {
@@ -33,8 +56,12 @@ export default function BannersTab() {
   };
 
   useEffect(() => {
-    void load();
+    let active = true;
+    fetchAllBanners()
+      .then((rows) => active && setBanners(rows))
+      .catch((err) => active && setError(translateError(err instanceof Error ? err.message : undefined)));
     return () => {
+      active = false;
       if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
     };
   }, []);
@@ -44,6 +71,9 @@ export default function BannersTab() {
     setPreview('');
     setBlob(null);
     setError('');
+    setDestinationKind('none');
+    setDestinationId('');
+    setCustomDestination('');
     setDraftStyle({ titleColor: '#ffffff', subtitleColor: '#a9bdd8', accentColor: '#00d5f5', fontFamily: 'display' });
     if (objectUrl.current) URL.revokeObjectURL(objectUrl.current);
     objectUrl.current = null;
@@ -79,6 +109,23 @@ export default function BannersTab() {
     setBlob(null);
     setError('');
     setDraftStyle({ titleColor: banner.titleColor, subtitleColor: banner.subtitleColor, accentColor: banner.accentColor, fontFamily: banner.fontFamily });
+    const linkUrl = banner.linkUrl ?? '';
+    setDestinationId('');
+    setCustomDestination('');
+    if (!linkUrl) {
+      setDestinationKind('none');
+    } else if (linkUrl === '/afiliados') {
+      setDestinationKind('affiliates');
+    } else if (linkUrl.startsWith('/categorias/')) {
+      setDestinationKind('category');
+      setDestinationId(routeEntityId(linkUrl.split('/')[2] ?? ''));
+    } else if (linkUrl.startsWith('/productos/')) {
+      setDestinationKind('product');
+      setDestinationId(routeEntityId(linkUrl.split('/')[2] ?? ''));
+    } else {
+      setDestinationKind('custom');
+      setCustomDestination(linkUrl);
+    }
   };
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
@@ -89,8 +136,26 @@ export default function BannersTab() {
     try {
       const imageUrl = blob ? await uploadBannerImage(blob) : preview;
       if (!imageUrl) throw new Error('Selecciona una imagen para el banner.');
+      let linkUrl: string | null = null;
+      if (destinationKind === 'affiliates') linkUrl = '/afiliados';
+      if (destinationKind === 'category') {
+        const category = categories.find((item) => item.id === destinationId);
+        if (!category) throw new Error('Selecciona una categoría para el banner.');
+        linkUrl = categoryPath(category);
+      }
+      if (destinationKind === 'product') {
+        const product = visibleProducts.find((item) => item.id === destinationId);
+        if (!product) throw new Error('Selecciona un producto visible para el banner.');
+        linkUrl = productPath(product);
+      }
+      if (destinationKind === 'custom') {
+        const path = customDestination.trim();
+        if (!path.startsWith('/') || path.startsWith('//')) throw new Error('Usa una ruta interna que comience con /, por ejemplo /guias o /#catalogo.');
+        linkUrl = path;
+      }
       await saveBanner({
         imageUrl,
+        linkUrl,
         title: String(form.get('title') ?? '').trim(),
         subtitle: String(form.get('subtitle') ?? '').trim(),
         titleColor: String(form.get('titleColor') ?? '#ffffff'),
@@ -154,6 +219,39 @@ export default function BannersTab() {
             <Field label="Orden"><input className="input" name="sortOrder" type="number" min={0} step={1} defaultValue={editing?.sortOrder ?? banners.length} /></Field>
           </div>
           <Field label="Texto secundario (opcional)"><input className="input" name="subtitle" defaultValue={editing?.subtitle ?? ''} maxLength={140} /></Field>
+          <Field label="Al hacer clic en todo el banner">
+            <select className="input" value={destinationKind} onChange={(event) => { setDestinationKind(event.target.value as DestinationKind); setDestinationId(''); setCustomDestination(''); }}>
+              <option value="none">Sin enlace</option>
+              <option value="affiliates">Afiliados</option>
+              <option value="category">Categoría</option>
+              <option value="product">Producto visible</option>
+              <option value="custom">Otra sección del sitio</option>
+            </select>
+          </Field>
+          {destinationKind === 'category' && (
+            <Field label="Categoría de destino">
+              <select className="input" value={destinationId} onChange={(event) => setDestinationId(event.target.value)} required>
+                <option value="">Selecciona una categoría…</option>
+                {sortedCategories.map((category) => <option key={category.id} value={category.id}>{category.parentId ? '↳ ' : ''}{category.name}</option>)}
+              </select>
+            </Field>
+          )}
+          {destinationKind === 'product' && (
+            <Field label="Producto de destino">
+              <select className="input" value={destinationId} onChange={(event) => setDestinationId(event.target.value)} required>
+                <option value="">Selecciona un producto visible…</option>
+                {visibleProducts.map((product) => {
+                  const category = categories.find((item) => item.id === product.categoryId);
+                  return <option key={product.id} value={product.id}>{category ? `${category.name} · ` : ''}{product.name}</option>;
+                })}
+              </select>
+            </Field>
+          )}
+          {destinationKind === 'custom' && (
+            <Field label="Ruta interna" hint="Usa rutas del sitio, por ejemplo /guias, /afiliados o /#catalogo.">
+              <input className="input" type="text" value={customDestination} onChange={(event) => setCustomDestination(event.target.value)} placeholder="/afiliados" required />
+            </Field>
+          )}
           <div className="banner-style-grid">
             <Field label="Color del título"><input className="color-input" type="color" name="titleColor" value={draftStyle.titleColor} onChange={(event) => setDraftStyle((current) => ({ ...current, titleColor: event.target.value }))} /></Field>
             <Field label="Color de la descripción"><input className="color-input" type="color" name="subtitleColor" value={draftStyle.subtitleColor} onChange={(event) => setDraftStyle((current) => ({ ...current, subtitleColor: event.target.value }))} /></Field>
@@ -161,7 +259,7 @@ export default function BannersTab() {
             <Field label="Tipografía"><select className="input" name="fontFamily" value={draftStyle.fontFamily} onChange={(event) => setDraftStyle((current) => ({ ...current, fontFamily: event.target.value as Banner['fontFamily'] }))}><option value="display">Display contundente</option><option value="clean">Limpia y moderna</option><option value="mono">Técnica monoespaciada</option></select></Field>
           </div>
           <div className="banner-live-preview" style={{ '--banner-title': draftStyle.titleColor, '--banner-subtitle': draftStyle.subtitleColor, '--banner-accent': draftStyle.accentColor } as CSSProperties}>
-            <span>ElectroMarket · selección</span><strong>{String((editing?.title || 'Tu título') || 'Tu título')}</strong><p>{String((editing?.subtitle || 'Descripción atractiva del producto') || 'Descripción atractiva del producto')}</p>
+            <span>ElectroMarket · selección</span><strong>{String((editing?.title || 'Tu título') || 'Tu título')}</strong><p>{String((editing?.subtitle || 'Descripción atractiva del producto') || 'Descripción atractiva del producto')}</p>{resolvedDestination && <small>El banner completo enlazará a {resolvedDestination}</small>}
           </div>
           <label className="switch"><input type="checkbox" name="visible" defaultChecked={editing?.visible ?? true} /><span>Mostrar en la tienda</span></label>
           <p className="form__error">{error}</p>
@@ -177,7 +275,7 @@ export default function BannersTab() {
         {banners.map((banner) => (
           <div className="prow banner-row" key={banner.id}>
             <Thumb src={banner.imageUrl} size={100} />
-            <div className="prow__info"><strong>{banner.title || 'Banner sin título'}</strong><span className="muted">Orden {banner.sortOrder} · {banner.visible ? 'Visible' : 'Oculto'}</span></div>
+            <div className="prow__info"><strong>{banner.title || 'Banner sin título'}</strong><span className="muted">Orden {banner.sortOrder} · {banner.visible ? 'Visible' : 'Oculto'} · {banner.linkUrl ? `Enlace: ${banner.linkUrl}` : 'Sin enlace'}</span></div>
             <div className="prow__actions"><Button variant="ghost" size="sm" onClick={() => edit(banner)}>Editar</Button><Button variant="danger" size="sm" onClick={() => remove(banner)}>Eliminar</Button></div>
           </div>
         ))}

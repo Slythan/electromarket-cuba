@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { formatMoney } from '@/lib/format';
+import { productPath } from '@/lib/slugs';
 import { hasManagerPricing, priceForRole, type Product, type Role } from '@/lib/types';
 import Button from './ui/Button';
 import Stepper from './ui/Stepper';
@@ -23,7 +24,7 @@ export default function ProductCard({ product, role, currency, qty, onAdd, onDec
 
   return (
     <article className="card">
-      <Link className="card__link" href={`/productos/${product.id}`}>
+      <Link className="card__link" href={productPath(product)}>
         <div className="card__media">
           {product.imageUrl ? (
             <img src={product.imageUrl} alt={product.name} loading="lazy" className="card__img" />

@@ -35,6 +35,7 @@ interface SettingsRow {
 interface BannerRow {
   id: string;
   image_url: string;
+  link_url?: string | null;
   title: string;
   subtitle: string;
   title_color?: string | null;
@@ -106,6 +107,7 @@ export const mapSettings = (r: SettingsRow): Settings => ({
 export const mapBanner = (r: BannerRow): Banner => ({
   id: r.id,
   imageUrl: r.image_url,
+  linkUrl: r.link_url ?? null,
   title: r.title,
   subtitle: r.subtitle,
   titleColor: r.title_color ?? '#ffffff',

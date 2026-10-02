@@ -67,7 +67,6 @@ export const baseMetadata: Metadata = {
   verification: {
     google: 'YtV9XhydKOY-FDPAjX00shyq9zE4_h42XwCuKqxLH3Y',
   },
-  alternates: { canonical: '/' },
   category: 'shopping',
 };
 

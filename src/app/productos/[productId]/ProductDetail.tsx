@@ -12,13 +12,14 @@ import { hasManagerPricing, priceForRole, type Product } from '@/lib/types';
 import ProductGrid from '@/components/ProductGrid';
 import Button from '@/components/ui/Button';
 import Stepper from '@/components/ui/Stepper';
+import { categoryPath } from '@/lib/slugs';
 
-export default function ProductDetail() {
+export default function ProductDetail({ initialProduct }: { initialProduct: Product }) {
   const params = useParams<{ productId: string }>();
   const { categories, products, settings, loading: storeLoading } = useStore();
   const { profile, isAdmin } = useAuth();
   const cart = useCart();
-  const [loaded, setLoaded] = useState<{ id: string; product: Product | null } | null>(null);
+  const [loaded, setLoaded] = useState<{ id: string; product: Product | null } | null>({ id: params.productId, product: initialProduct });
   const [activePhoto, setActivePhoto] = useState(0);
 
   useEffect(() => {
@@ -67,12 +68,12 @@ export default function ProductDetail() {
 
   return (
     <div className="container product-page">
-      <Link href={category ? `/categorias/${category.id}` : '/'} className="legal-page__back">← Volver a {category ? category.name : 'la tienda'}</Link>
+      <Link href={category ? categoryPath(category) : '/'} className="legal-page__back">← Volver a {category ? category.name : 'la tienda'}</Link>
 
       <nav className="product-breadcrumb" aria-label="Ubicación del producto">
         <Link href="/">Tienda</Link>
-        {parent && <><span aria-hidden="true">/</span><Link href={`/categorias/${parent.id}`}>{parent.name}</Link></>}
-        {category && <><span aria-hidden="true">/</span><Link href={`/categorias/${category.id}`}>{category.name}</Link></>}
+        {parent && <><span aria-hidden="true">/</span><Link href={categoryPath(parent)}>{parent.name}</Link></>}
+        {category && <><span aria-hidden="true">/</span><Link href={categoryPath(category)}>{category.name}</Link></>}
         <span aria-hidden="true">/</span>
         <span className="muted">{product.name}</span>
       </nav>
@@ -160,7 +161,7 @@ export default function ProductDetail() {
         <section className="product-related">
           <div className="section-heading">
             <div><span className="eyebrow">TAMBIÉN TE PUEDE INTERESAR</span><h2>Más de {category.name}</h2></div>
-            <Link className="subcategory-section__link" href={`/categorias/${category.id}`}>Ver toda la categoría →</Link>
+            <Link className="subcategory-section__link" href={categoryPath(category)}>Ver toda la categoría →</Link>
           </div>
           <ProductGrid categoryId={category.id} categories={categories} includeChildren={false} excludeId={product.id} />
         </section>

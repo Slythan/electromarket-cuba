@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useStore } from '@/context/StoreContext';
 import { useToast } from '@/context/ToastContext';
 import { formatMoney, translateError } from '@/lib/format';
+import { productPath } from '@/lib/slugs';
 import { deleteProduct, removeProductImages, setProductVisible } from '@/services/products';
 import type { Product } from '@/lib/types';
 import Button from '../ui/Button';
@@ -84,7 +85,7 @@ export default function ProductsTab() {
                 <span>Visible</span>
               </label>
               <div className="prow__actions">
-                <Link className="btn btn--ghost btn--sm" href={`/productos/${p.id}`} target="_blank" rel="noopener noreferrer">Ver</Link>
+                <Link className="btn btn--ghost btn--sm" href={productPath(p)} target="_blank" rel="noopener noreferrer">Ver</Link>
                 <Button variant="ghost" size="sm" onClick={() => setEditing(p)}>Editar</Button>
                 <Button variant="danger" size="sm" onClick={() => remove(p)}>
                   {armedDelete === p.id ? '¿Seguro?' : 'Eliminar'}

@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import type { ReactNode } from 'react';
-import { ARTICLES, getArticle, type Article, type ArticleBlock } from '@/lib/articles';
+import { notFound, redirect } from 'next/navigation';
+import { ARTICLES, getArticle, type Article } from '@/lib/articles';
+import { AFFILIATE_GUIDE_SLUG } from '@/lib/guideRoutes';
 import { fetchPublishedGuide, fetchPublishedGuides } from '@/services/guides';
+import GuideContent from '@/components/GuideContent';
 import { SITE_NAME, SITE_URL, toMetaDescription } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic'; // Siempre fresco: los cambios del panel se ven al instante.
@@ -23,6 +24,9 @@ async function resolveArticle(slug: string): Promise<Article | null> {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+  if (slug === AFFILIATE_GUIDE_SLUG) {
+    return { alternates: { canonical: `${SITE_URL}/afiliados` } };
+  }
   const article = await resolveArticle(slug);
   if (!article) return {};
 
@@ -41,47 +45,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-/** Renderiza Markdown en línea dentro de párrafos y listas: **negrita** y [enlaces](url). */
-function renderInline(text: string): ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g);
-  return parts.map((part, i) => {
-    const bold = part.match(/^\*\*([^*]+)\*\*$/);
-    if (bold) return <strong key={i}>{bold[1]}</strong>;
-    const link = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-    if (link) {
-      const href = link[2];
-      return href.startsWith('/')
-        ? <Link key={i} href={href}>{link[1]}</Link>
-        : <a key={i} href={href} target="_blank" rel="noreferrer">{link[1]}</a>;
-    }
-    return part;
-  });
-}
-
-function Block({ block }: { block: ArticleBlock }) {
-  switch (block.type) {
-    case 'h2':
-      return <h2>{block.text}</h2>;
-    case 'p':
-      return <p>{renderInline(block.text)}</p>;
-    case 'ul':
-      return <ul>{block.items.map((item) => <li key={item}>{renderInline(item)}</li>)}</ul>;
-    case 'img':
-      return <figure className="guide-figure"><img src={block.src} alt={block.alt} loading="lazy" /></figure>;
-    case 'cta':
-      return <p className="guide-cta"><Link className="btn btn--primary" href={block.href}>{block.label}</Link></p>;
-  }
-}
-
 export default async function ArticlePage({ params }: Props) {
   const { slug } = await params;
+  if (slug === AFFILIATE_GUIDE_SLUG) redirect('/afiliados');
   const article = await resolveArticle(slug);
   if (!article) notFound();
 
   let related: Article[] = ARTICLES.filter((a) => a.slug !== article.slug).slice(0, 2);
   try {
     const remote = await fetchPublishedGuides();
-    related = [...remote, ...ARTICLES].filter((a) => a.slug !== article.slug).slice(0, 2);
+    related = [...remote, ...ARTICLES].filter((a) => a.slug !== article.slug && a.slug !== AFFILIATE_GUIDE_SLUG).slice(0, 2);
   } catch {
     // Se quedan las estáticas.
   }
@@ -113,7 +86,7 @@ export default async function ArticlePage({ params }: Props) {
 
       {article.coverImage && <img src={article.coverImage} alt={article.title} className="guide-hero" />}
 
-      {article.blocks.map((block, i) => <Block key={i} block={block} />)}
+      <GuideContent blocks={article.blocks} />
 
       {related.length > 0 && (
         <section className="guide-related">

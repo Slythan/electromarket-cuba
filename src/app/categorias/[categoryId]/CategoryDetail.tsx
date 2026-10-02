@@ -1,19 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useParams, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import ProductGrid from '@/components/ProductGrid';
 import { useStore } from '@/context/StoreContext';
+import type { Category } from '@/lib/types';
+import { categoryPath } from '@/lib/slugs';
 
-export default function CategoryDetail() {
-  const params = useParams<{ categoryId: string }>();
-  const { categories, loading } = useStore();
+export default function CategoryDetail({ initialCategories, initialCategory }: { initialCategories: Category[]; initialCategory: Category }) {
+  const { categories: storeCategories } = useStore();
+  const categories = storeCategories.length ? storeCategories : initialCategories;
   const searchParams = useSearchParams();
   const query = searchParams.get('q') ?? '';
-  const category = categories.find((item) => item.id === params.categoryId);
+  const category = categories.find((item) => item.id === initialCategory.id) ?? initialCategory;
   const children = categories.filter((item) => item.parentId === category?.id);
-
-  if (loading) return <div className="container category-page"><p className="muted">Cargando categoría…</p></div>;
 
   if (!category) {
     return <div className="container category-page"><h1>Categoría no encontrada</h1><Link href="/" className="btn">Volver a la tienda</Link></div>;
@@ -36,11 +36,11 @@ export default function CategoryDetail() {
           {children.map((child) => (
             <section className="subcategory-section" key={child.id}>
               <div className="subcategory-section__heading">
-                <Link className="subcategory-section__identity" href={`/categorias/${child.id}`}>
+                <Link className="subcategory-section__identity" href={categoryPath(child)}>
                   <div className="subcategory-section__image">{child.imageUrl ? <img src={child.imageUrl} alt={child.name} /> : <span aria-hidden="true">◈</span>}</div>
                   <div><span className="eyebrow">SUBCATEGORÍA</span><h2>{child.name}</h2></div>
                 </Link>
-                <Link className="subcategory-section__link" href={`/categorias/${child.id}`}>Ver toda la sección →</Link>
+                <Link className="subcategory-section__link" href={categoryPath(child)}>Ver toda la sección →</Link>
               </div>
               <ProductGrid query={query} categoryId={child.id} categories={categories} includeChildren={false} />
             </section>

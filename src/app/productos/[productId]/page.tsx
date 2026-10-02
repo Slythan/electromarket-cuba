@@ -1,6 +1,8 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { fetchProduct } from '@/services/products';
 import { baseMetadata, toMetaDescription, SITE_URL } from '@/lib/seo';
+import { productPath } from '@/lib/slugs';
 import ProductDetail from './ProductDetail';
 
 type Props = {
@@ -13,6 +15,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!product) return baseMetadata;
 
+  const canonicalPath = productPath(product);
+
   return {
     ...baseMetadata,
     title: product.name,
@@ -21,6 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ...baseMetadata.openGraph,
       title: product.name,
       description: toMetaDescription(product.description),
+      url: `${SITE_URL}${canonicalPath}`,
       images: product.imageUrls.length > 0 ? [{ url: product.imageUrls[0] }] : [],
     },
     twitter: {
@@ -29,6 +34,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: toMetaDescription(product.description),
       images: product.imageUrls.length > 0 ? [product.imageUrls[0]] : [],
     },
+    alternates: { canonical: canonicalPath },
+    robots: { index: product.visible, follow: true },
   };
 }
 
@@ -45,6 +52,9 @@ export default async function ProductPage({ params }: Props) {
     );
   }
 
+  const canonicalPath = productPath(product);
+  if (productId !== canonicalPath.split('/').at(-1)) redirect(canonicalPath);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Product',
@@ -54,7 +64,7 @@ export default async function ProductPage({ params }: Props) {
     'sku': product.id,
     'offers': {
       '@type': 'Offer',
-      'url': `${SITE_URL}/productos/${product.id}`,
+      'url': `${SITE_URL}${canonicalPath}`,
       'priceCurrency': 'USD', // Default, will be handled by store context in client
       'price': product.price,
       'availability': product.stock !== null && product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
@@ -67,7 +77,7 @@ export default async function ProductPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ProductDetail />
+      <ProductDetail initialProduct={product} />
     </>
   );
 }

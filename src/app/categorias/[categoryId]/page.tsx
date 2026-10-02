@@ -1,6 +1,8 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { redirect } from 'next/navigation';
 import { fetchCategories } from '@/services/categories';
 import { baseMetadata, toMetaDescription, SITE_URL } from '@/lib/seo';
+import { categoryPath, routeEntityId } from '@/lib/slugs';
 import CategoryDetail from './CategoryDetail';
 
 type Props = {
@@ -10,7 +12,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { categoryId } = await params;
   const categories = await fetchCategories();
-  const category = categories.find((c) => c.id === categoryId);
+  const category = categories.find((c) => c.id === routeEntityId(categoryId));
 
   if (!category) return baseMetadata;
 
@@ -24,15 +26,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ...baseMetadata.openGraph,
       title: category.name,
       description,
+      url: `${SITE_URL}${categoryPath(category)}`,
       images: category.imageUrl ? [{ url: category.imageUrl }] : [],
     },
+    alternates: { canonical: categoryPath(category) },
   };
 }
 
 export default async function CategoryPage({ params }: Props) {
   const { categoryId } = await params;
   const categories = await fetchCategories();
-  const category = categories.find((c) => c.id === categoryId);
+  const category = categories.find((c) => c.id === routeEntityId(categoryId));
 
   if (!category) {
     return (
@@ -43,12 +47,15 @@ export default async function CategoryPage({ params }: Props) {
     );
   }
 
+  const canonicalPath = categoryPath(category);
+  if (categoryId !== canonicalPath.split('/').at(-1)) redirect(canonicalPath);
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'CollectionPage',
     'name': category.name,
     'description': `Explora nuestra selección de ${category.name} en ElectroMarketCuba.`,
-    'url': `${SITE_URL}/categorias/${category.id}`,
+    'url': `${SITE_URL}${canonicalPath}`,
   };
 
   return (
@@ -57,7 +64,7 @@ export default async function CategoryPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CategoryDetail />
+      <CategoryDetail initialCategories={categories} initialCategory={category} />
     </>
   );
 }

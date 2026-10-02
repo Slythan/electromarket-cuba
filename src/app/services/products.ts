@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { mapProduct, type ProductRow } from '@/lib/mappers';
+import { routeEntityId } from '@/lib/slugs';
 import type { Product } from '@/lib/types';
 
 const BUCKET = 'product-images';
@@ -27,7 +28,7 @@ export async function fetchProducts(): Promise<Product[]> {
 
 /** Un producto por id (para su página propia). Devuelve null si no existe o está oculto. */
 export async function fetchProduct(id: string): Promise<Product | null> {
-  const { data, error } = await supabase.from('products').select('*').eq('id', id).maybeSingle();
+  const { data, error } = await supabase.from('products').select('*').eq('id', routeEntityId(id)).maybeSingle();
   if (error) throw new Error(error.message);
   return data ? mapProduct(data as ProductRow) : null;
 }

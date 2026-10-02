@@ -59,3 +59,19 @@ export async function updateProfileRole(id: string, role: Role) {
   const { error } = await supabase.from('profiles').update({ role }).eq('id', id);
   if (error) throw new Error(error.message);
 }
+
+export type ManagerRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export async function getMyManagerRequest(
+  userId: string
+): Promise<{ status: ManagerRequestStatus } | null> {
+  const { data, error } = await supabase
+    .from('manager_requests')
+    .select('status')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data as { status: ManagerRequestStatus } | null;
+}

@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 
 export type ModalName = 'cart' | 'auth' | 'checkout' | 'done';
+
 export type AuthTab = 'login' | 'register';
 
 export interface DoneInfo {
@@ -12,6 +13,11 @@ export interface DoneInfo {
   text: string;
   /** false si el pedido no pudo guardarse en la base de datos */
   saved: boolean;
+  /**
+   * Identificador del pedido guardado. Si el checkout lo devuelve al guardar,
+   * conviene incluirlo también en el mensaje de WhatsApp para cruzar ambos.
+   */
+  orderId?: string;
   error?: string;
 }
 
@@ -27,7 +33,10 @@ interface UIState {
   thenCheckout: boolean;
   done: DoneInfo | null;
   open: (modal: ModalName, options?: OpenOptions) => void;
+  /** Cierra el modal actual. No toca `done`: el checkout puede cerrar y publicar el pedido a la vez. */
   close: () => void;
+  /** Cierra la pantalla de "pedido listo" y descarta su información. */
+  dismissDone: () => void;
   setAuthTab: (tab: AuthTab) => void;
   setDone: (info: DoneInfo | null) => void;
 }
@@ -59,9 +68,15 @@ export function UIProvider({ children }: { children: ReactNode }) {
     setThenCheckout(false);
   }, []);
 
+  const dismissDone = useCallback(() => {
+    setDone(null);
+    setModal(null);
+    setThenCheckout(false);
+  }, []);
+
   const value = useMemo<UIState>(
-    () => ({ modal, authTab, thenCheckout, done, open, close, setAuthTab, setDone }),
-    [modal, authTab, thenCheckout, done, open, close]
+    () => ({ modal, authTab, thenCheckout, done, open, close, dismissDone, setAuthTab, setDone }),
+    [modal, authTab, thenCheckout, done, open, close, dismissDone]
   );
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;
