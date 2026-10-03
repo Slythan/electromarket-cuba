@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { formatMoney } from '@/lib/format';
 import { productPath } from '@/lib/slugs';
 import { hasManagerPricing, priceForRole, type Product, type Role } from '@/lib/types';
@@ -27,7 +28,7 @@ export default function ProductCard({ product, role, currency, qty, onAdd, onDec
       <Link className="card__link" href={productPath(product)}>
         <div className="card__media">
           {product.imageUrl ? (
-            <img src={product.imageUrl} alt={product.name} loading="lazy" className="card__img" />
+            <Image src={product.imageUrl} alt={product.name} fill sizes="(max-width: 560px) 50vw, (max-width: 900px) 33vw, 240px" unoptimized loading="lazy" decoding="async" className="card__img" />
           ) : (
             <div className="card__placeholder">📦</div>
           )}

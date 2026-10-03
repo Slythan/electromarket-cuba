@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Category } from '@/lib/types';
 import { categoryPath } from '@/lib/slugs';
 
@@ -17,7 +18,7 @@ export default function CategoryShowcase({ categories }: { categories: Category[
           const children = categories.filter((category) => category.parentId === parent.id);
           return (
             <Link className="category-card" href={categoryPath(parent)} key={parent.id}>
-              <div className="category-card__image">{parent.imageUrl ? <img src={parent.imageUrl} alt={parent.name} /> : <span aria-hidden="true">◈</span>}</div>
+              <div className="category-card__image">{parent.imageUrl ? <Image src={parent.imageUrl} alt={parent.name} fill sizes="(max-width: 560px) 50vw, 220px" unoptimized loading="lazy" decoding="async" /> : <span aria-hidden="true">◈</span>}</div>
               <div className="category-card__body"><h3>{parent.name}</h3>{children.length > 0 && <div className="subcategory-list">{children.map((child) => <span key={child.id}>{child.name}</span>)}</div>}</div>
             </Link>
           );

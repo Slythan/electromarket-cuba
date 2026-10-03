@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function SiteFooter() {
   return <>
@@ -11,7 +12,7 @@ export default function SiteFooter() {
     </section>
     <footer className="site-footer">
       <div className="site-footer__inner">
-        <div className="site-footer__brand"><div className="footer-mark"><img src="/electromarket-icon-white.svg" alt="" /><strong>ElectroMarketCuba</strong></div><p>Soluciones confiables para tu hogar, tu energía y tu movilidad en Cuba.</p></div>
+        <div className="site-footer__brand"><div className="footer-mark"><Image src="/electromarket-icon-white.svg" width={40} height={36} alt="" unoptimized loading="lazy" decoding="async" /><strong>ElectroMarketCuba</strong></div><p>Soluciones confiables para tu hogar, tu energía y tu movilidad en Cuba.</p></div>
         <div><h3>Comprar</h3><Link href="/">Energía</Link><Link href="/">Electrodomésticos</Link><Link href="/">Climatización</Link><Link href="/">Movilidad</Link></div>
         <div><h3>Ayuda</h3><Link href="/guias">Guías y consejos</Link><Link href="/terms">Cómo comprar</Link><Link href="/terms">Entregas</Link><Link href="/terms">Garantía</Link><Link href="/privacy">Privacidad</Link></div>
         <div><h3>Mi cuenta</h3><Link href="/">Carrito</Link><Link href="/terms">Términos</Link></div>

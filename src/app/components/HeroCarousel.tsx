@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Banner } from '@/lib/types';
 
 export default function HeroCarousel({ banners }: { banners: Banner[] }) {
@@ -19,12 +20,12 @@ export default function HeroCarousel({ banners }: { banners: Banner[] }) {
   return (
     <section className="hero-carousel" aria-label="Promociones destacadas">
       <div className="hero-carousel__track" style={{ transform: `translate3d(-${current * 100}%, 0, 0)` }}>
-        {banners.map((banner) => {
+        {banners.map((banner, index) => {
           const fontFamily = banner.fontFamily === 'mono' ? 'ui-monospace, SFMono-Regular, Consolas, monospace' : banner.fontFamily === 'clean' ? "'Avenir Next', Avenir, 'Segoe UI', sans-serif" : "'Arial Black', 'Avenir Next', Avenir, sans-serif";
           const style = { '--banner-title': banner.titleColor, '--banner-subtitle': banner.subtitleColor, '--banner-accent': banner.accentColor, '--banner-font': fontFamily } as CSSProperties;
           const contents = <>
             <div className="hero-carousel__image-wrap">
-              <img className="hero-carousel__image" src={banner.imageUrl} alt={banner.title || 'Promoción ElectroMarketCuba'} />
+              <Image className="hero-carousel__image" src={banner.imageUrl} alt={banner.title || 'Promoción ElectroMarketCuba'} fill sizes="(max-width: 560px) 100vw, 1068px" unoptimized decoding="async" preload={index === 0} />
             </div>
             {(banner.title || banner.subtitle) && (
               <div className="hero-carousel__copy">

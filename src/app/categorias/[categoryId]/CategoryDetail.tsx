@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import ProductGrid from '@/components/ProductGrid';
 import { useStore } from '@/context/StoreContext';
@@ -24,7 +25,7 @@ export default function CategoryDetail({ initialCategories, initialCategory, ini
     <div className="container category-page">
       <Link href="/" className="legal-page__back">← Volver a la tienda</Link>
       <header className="category-page__header">
-        <div className="category-page__image">{category.imageUrl ? <img src={category.imageUrl} alt={category.name} /> : <span aria-hidden="true">◈</span>}</div>
+        <div className="category-page__image">{category.imageUrl ? <Image src={category.imageUrl} alt={category.name} fill sizes="112px" unoptimized loading="lazy" decoding="async" /> : <span aria-hidden="true">◈</span>}</div>
         <div>
           <span className="eyebrow">CATEGORÍA</span>
           <h1>{category.name}</h1>
@@ -38,7 +39,7 @@ export default function CategoryDetail({ initialCategories, initialCategory, ini
             <section className="subcategory-section" key={child.id}>
               <div className="subcategory-section__heading">
                 <Link className="subcategory-section__identity" href={categoryPath(child)}>
-                  <div className="subcategory-section__image">{child.imageUrl ? <img src={child.imageUrl} alt={child.name} /> : <span aria-hidden="true">◈</span>}</div>
+                  <div className="subcategory-section__image">{child.imageUrl ? <Image src={child.imageUrl} alt={child.name} fill sizes="58px" unoptimized loading="lazy" decoding="async" /> : <span aria-hidden="true">◈</span>}</div>
                   <div><span className="eyebrow">SUBCATEGORÍA</span><h2>{child.name}</h2></div>
                 </Link>
                 <Link className="subcategory-section__link" href={categoryPath(child)}>Ver toda la sección →</Link>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Image from 'next/image';
 import type { Category } from '@/lib/types';
 
 interface CategoryDropdownProps {
@@ -55,7 +56,7 @@ export default function CategoryDropdown({ categories, value, onChange }: Catego
         onClick={() => setOpen((current) => !current)}
       >
         <span className="category-dropdown__selected-image">
-          {selected?.imageUrl ? <img src={selected.imageUrl} alt="" /> : <span aria-hidden="true">⌘</span>}
+          {selected?.imageUrl ? <Image src={selected.imageUrl} alt="" width={44} height={44} unoptimized loading="lazy" decoding="async" /> : <span aria-hidden="true">⌘</span>}
         </span>
         <span className="category-dropdown__selected-text">
           <small>CATEGORÍA</small>
@@ -80,14 +81,14 @@ export default function CategoryDropdown({ categories, value, onChange }: Catego
                 <div className="category-group" key={parent.id}>
                   <div className={`category-option-row${value === parent.id ? ' is-selected' : ''}`}>
                     <button type="button" className="category-option category-option--parent" onClick={() => { onChange(parent.id); setOpen(false); }}>
-                      <span className="category-option__image">{parent.imageUrl ? <img src={parent.imageUrl} alt="" /> : '◈'}</span>
+                      <span className="category-option__image">{parent.imageUrl ? <Image src={parent.imageUrl} alt="" width={32} height={32} unoptimized loading="lazy" decoding="async" /> : '◈'}</span>
                       <strong>{parent.name}</strong>
                     </button>
                     {children.length > 0 && <button type="button" className="category-group__toggle" aria-label={`${(expandedParents.has(parent.id) || children.some((child) => child.id === value)) ? 'Ocultar' : 'Mostrar'} subcategorías de ${parent.name}`} aria-expanded={expandedParents.has(parent.id) || children.some((child) => child.id === value)} onClick={() => toggleParent(parent.id)}>{expandedParents.has(parent.id) || children.some((child) => child.id === value) ? '⌄' : '›'}</button>}
                   </div>
                   {(expandedParents.has(parent.id) || children.some((child) => child.id === value)) && children.map((child) => (
                     <button type="button" className={`category-option category-option--child${value === child.id ? ' is-selected' : ''}`} key={child.id} onClick={() => { onChange(child.id); setOpen(false); }}>
-                      <span className="category-option__image">{child.imageUrl ? <img src={child.imageUrl} alt="" /> : '◈'}</span>
+                      <span className="category-option__image">{child.imageUrl ? <Image src={child.imageUrl} alt="" width={32} height={32} unoptimized loading="lazy" decoding="async" /> : '◈'}</span>
                       <span>{child.name}</span>
                     </button>
                   ))}

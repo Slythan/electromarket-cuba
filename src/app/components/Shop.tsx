@@ -1,6 +1,7 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { useStore } from '@/context/StoreContext';
 import ProductGrid from './ProductGrid';
 import HeroCarousel from './HeroCarousel';
@@ -33,7 +34,7 @@ export default function Shop({ initialProducts, initialHasMore, initialCategorie
       <section id="catalogo" className="catalog-section"><div className="catalog-section__heading"><div><span className="eyebrow">Selección ElectroMarketCuba</span><h2>Productos destacados</h2></div><span className="catalog-section__arrow">Ver destacados　→</span></div><ProductGrid query={query} initialProducts={initialProducts} initialHasMore={initialHasMore} /></section>
       {categories.length === 0 && <div className="empty storefront-empty">El catálogo se está preparando. Pronto tendremos productos disponibles.</div>}
       <StoreHighlights />
-      <section className="about-band"><div className="about-band__visual"><img src="/about-electromarket.png" alt="ElectroMarketCuba, compromiso y calidad en productos electrónicos" /></div><div><span className="eyebrow">COMPRA CON CONFIANZA</span><h2>Tecnología que mejora la vida en Cuba</h2><p>En ElectroMarketCuba seleccionamos productos útiles, duraderos y adaptados a tus necesidades. Nuestro equipo te acompaña con información clara y soporte humano.</p><div className="about-stats"><strong>+2 500<small>clientes</small></strong><strong>100%<small>compra segura</small></strong><strong>Soporte<small>local</small></strong></div></div></section>
+      <section className="about-band"><div className="about-band__visual"><Image src="/about-electromarket.png" alt="ElectroMarketCuba, compromiso y calidad en productos electrónicos" fill sizes="(max-width: 760px) 100vw, 45vw" unoptimized loading="lazy" decoding="async" /></div><div><span className="eyebrow">COMPRA CON CONFIANZA</span><h2>Tecnología que mejora la vida en Cuba</h2><p>En ElectroMarketCuba seleccionamos productos útiles, duraderos y adaptados a tus necesidades. Nuestro equipo te acompaña con información clara y soporte humano.</p><div className="about-stats"><strong>+2 500<small>clientes</small></strong><strong>100%<small>compra segura</small></strong><strong>Soporte<small>local</small></strong></div></div></section>
     </div>
   );
 }

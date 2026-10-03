@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
@@ -81,7 +82,7 @@ export default function ProductDetail({ initialProduct }: { initialProduct: Prod
       <article className="product">
         <div className="product__gallery">
           <div className="product__photo">
-            {photos[active] ? <img src={photos[active]} alt={product.name} /> : <span aria-hidden="true">📦</span>}
+            {photos[active] ? <Image src={photos[active]} alt={product.name} fill sizes="(max-width: 760px) 100vw, 50vw" unoptimized decoding="async" preload={active === 0} /> : <span aria-hidden="true">📦</span>}
             {soldOut && <span className="card__tag">Agotado</span>}
           </div>
           {photos.length > 1 && (
@@ -95,7 +96,7 @@ export default function ProductDetail({ initialProduct }: { initialProduct: Prod
                   aria-label={`Ver foto ${index + 1}`}
                   aria-current={index === active ? 'true' : undefined}
                 >
-                  <img src={url} alt="" />
+                  <Image src={url} alt="" width={92} height={72} unoptimized loading="lazy" decoding="async" />
                 </button>
               ))}
             </div>
