@@ -7,7 +7,7 @@ import { useOrders } from '@/admin/hooks/useOrders';
 import { formatMoney } from '@/lib/format';
 
 export default function OrdersPage() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isGuest } = useAuth();
   const { settings } = useStore();
   const { orders, loading: ordersLoading } = useOrders(Boolean(user), user?.id);
 
@@ -20,7 +20,8 @@ export default function OrdersPage() {
         <div><span className="eyebrow">ElectroMarketCuba · Historial</span><h1>Mis órdenes</h1><p className="muted">Consulta el estado y el detalle de tus compras.</p></div>
         <Link href="/account" className="btn btn--ghost btn--sm">Gestionar cuenta</Link>
       </header>
-      {ordersLoading ? <p className="muted">Cargando órdenes…</p> : orders.length === 0 ? <div className="note">Todavía no tienes órdenes. <Link href="/">Explorar la tienda</Link></div> : <div className="rows orders-page__list">{orders.map((order) => <article className="order" key={order.id}><div className="order__head"><div><strong>{new Date(order.createdAt).toLocaleString('es')}</strong><span className="muted order__customer">{profile?.name || user.email}</span></div><span className="status-pill">{order.status}</span></div>{order.items.map((item, index) => <div className="sumline" key={`${item.id}-${index}`}><span>{item.qty} × {item.name}</span><span>{formatMoney(item.price * item.qty, settings.currency)}</span></div>)}{order.deliveryZone && <div className="sumline"><span>Mensajería · {order.deliveryZone}</span><span>{order.deliveryFee ? formatMoney(order.deliveryFee, settings.currency) : 'Gratis'}</span></div>}<div className="sumline sumline--total"><b>Total</b><b>{formatMoney(order.total, settings.currency)}</b></div></article>)}</div>}
+      {isGuest && <p className="muted">Estás usando una sesión de invitado guardada en este navegador.</p>}
+      {ordersLoading ? <p className="muted">Cargando órdenes…</p> : orders.length === 0 ? <div className="note">Todavía no tienes órdenes. <Link href="/">Explorar la tienda</Link></div> : <div className="rows orders-page__list">{orders.map((order) => <article className="order" key={order.id}><div className="order__head"><div><strong>{new Date(order.createdAt).toLocaleString('es')}</strong><span className="muted order__customer">{isGuest ? 'Compra como invitado' : profile?.name || user.email}</span></div><span className="status-pill">{order.status}</span></div>{order.items.map((item, index) => <div className="sumline" key={`${item.id}-${index}`}><span>{item.qty} × {item.name}</span><span>{formatMoney(item.price * item.qty, settings.currency)}</span></div>)}{order.deliveryZone && <div className="sumline"><span>Mensajería · {order.deliveryZone}</span><span>{order.deliveryFee ? formatMoney(order.deliveryFee, settings.currency) : 'Gratis'}</span></div>}<div className="sumline sumline--total"><b>Total</b><b>{formatMoney(order.total, settings.currency)}</b></div></article>)}</div>}
     </div>
   );
 }

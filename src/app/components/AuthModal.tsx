@@ -11,7 +11,7 @@ import Modal from './ui/Modal';
 
 export default function AuthModal() {
   const { authTab, setAuthTab, thenCheckout, open, close } = useUI();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signInAsGuest, signUp } = useAuth();
   const { items } = useCart();
   const toast = useToast();
   const [error, setError] = useState('');
@@ -62,6 +62,15 @@ export default function AuthModal() {
     finish(`¡Cuenta creada! Bienvenido/a, ${name.split(' ')[0]}`);
   };
 
+  const onContinueAsGuest = async () => {
+    setBusy(true);
+    setError('');
+    const err = await signInAsGuest();
+    setBusy(false);
+    if (err) return setError(err);
+    finish('Continuarás como invitado. Tus pedidos quedarán asociados a este dispositivo.');
+  };
+
   return (
     <Modal title={authTab === 'login' ? 'Ingresar' : 'Crear cuenta'} onClose={close}>
       <div className="tabs">
@@ -101,6 +110,15 @@ export default function AuthModal() {
           <p className="form__error">{error}</p>
           <Button type="submit" disabled={busy}>{busy ? 'Creando…' : 'Crear cuenta'}</Button>
         </form>
+      )}
+
+      {thenCheckout && (
+        <div className="auth-guest">
+          <p className="muted">No necesitas correo ni contraseña para comprar.</p>
+          <Button type="button" variant="ghost" block disabled={busy} onClick={() => void onContinueAsGuest()}>
+            {busy ? 'Preparando compra…' : 'Continuar como invitado'}
+          </Button>
+        </div>
       )}
     </Modal>
   );

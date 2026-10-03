@@ -1,4 +1,5 @@
 -- Execute after supabase_orders.sql, supabase_accounts.sql, and supabase_delivery.sql.
+-- Enable Anonymous Sign-Ins in Supabase Auth before offering guest checkout.
 -- Order prices, manager commissions, and stock reservations are authoritative here.
 
 begin;
@@ -169,7 +170,12 @@ begin
     from public.profiles
    where id = v_user_id;
   if not found then
-    raise exception 'No se encontró el perfil de la cuenta.';
+    if coalesce((auth.jwt() ->> 'is_anonymous')::boolean, false) then
+      v_role := 'customer';
+      v_profile_name := 'Invitado';
+    else
+      raise exception 'No se encontró el perfil de la cuenta.';
+    end if;
   end if;
 
   if jsonb_typeof(p_customer) is distinct from 'object' then

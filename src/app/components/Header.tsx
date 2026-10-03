@@ -13,7 +13,7 @@ import CategoryDropdown from './CategoryDropdown';
 import { categoryPath, routeEntityId } from '@/lib/slugs';
 
 export default function Header() {
-  const { user, profile, isAdmin, signOut } = useAuth();
+  const { user, profile, isAdmin, isGuest, signOut } = useAuth();
   const { count } = useCart();
   const { settings } = useStore();
   const { categories } = useStore();
@@ -28,7 +28,7 @@ export default function Header() {
   const isStoreRoute = pathname === '/' || pathname.startsWith('/categorias/') || pathname.startsWith('/productos/');
   const showStoreTools = !pathname.startsWith('/admin');
 
-  const firstName = (profile?.name || user?.email || '').split(' ')[0];
+  const firstName = isGuest ? 'invitado' : (profile?.name || user?.email || '').split(' ')[0];
   const navLink = (matches: boolean, extraClass = '') => `main-nav__link${matches ? ' is-active' : ''}${extraClass ? ` ${extraClass}` : ''}`;
   const submitSearch = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -93,8 +93,8 @@ export default function Header() {
             <Link href="/" className={navLink(isStoreRoute)} aria-current={isStoreRoute ? 'page' : undefined}>Tienda</Link>
             <Link href="/guias" className={navLink(pathname.startsWith('/guias'))} aria-current={pathname.startsWith('/guias') ? 'page' : undefined}>Guías</Link>
             <Link href="/afiliados" className={navLink(pathname.startsWith('/afiliados'))} aria-current={pathname.startsWith('/afiliados') ? 'page' : undefined}>Afiliados</Link>
-            {user && <Link href="/orders" className={navLink(pathname.startsWith('/orders'))} aria-current={pathname.startsWith('/orders') ? 'page' : undefined}>Órdenes</Link>}
-            {user && <Link href="/account" className={navLink(pathname.startsWith('/account'))} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>Cuenta</Link>}
+            {user && <Link href="/orders" className={navLink(pathname.startsWith('/orders'))} aria-current={pathname.startsWith('/orders') ? 'page' : undefined}>{isGuest ? 'Mis pedidos' : 'Órdenes'}</Link>}
+            {user && !isGuest && <Link href="/account" className={navLink(pathname.startsWith('/account'))} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>Cuenta</Link>}
             {isAdmin && <Link href="/admin" className={navLink(pathname.startsWith('/admin'), 'main-nav__link--admin')} aria-current={pathname.startsWith('/admin') ? 'page' : undefined}>Panel Admin</Link>}
           </div>
           {/* El carrito vive en esta barra fija para seguir visible al hacer scroll. */}

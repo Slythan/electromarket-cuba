@@ -285,7 +285,7 @@ function ManagerRequestSection({
 }
 
 export default function AccountPage() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isGuest } = useAuth();
   const { settings } = useStore();
 
   // El cast permite leer `error` si el hook lo devuelve (ver nota en la respuesta);
@@ -311,6 +311,16 @@ export default function AccountPage() {
         <Link href="/" className="btn">
           Volver a la tienda
         </Link>
+      </div>
+    );
+  }
+
+  if (isGuest) {
+    return (
+      <div className="container account">
+        <h1>Estás comprando como invitado</h1>
+        <p className="muted">No se creó una cuenta. Tus pedidos están asociados a la sesión guardada en este navegador.</p>
+        <Link href="/orders" className="btn">Consultar mis pedidos</Link>
       </div>
     );
   }

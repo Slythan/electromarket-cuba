@@ -18,9 +18,11 @@ interface AuthState {
   user: User | null;
   profile: Profile | null;
   isAdmin: boolean;
+  isGuest: boolean;
   loading: boolean;
   /** Devuelve un mensaje de error, o null si todo salió bien. */
   signIn: (email: string, password: string) => Promise<string | null>;
+  signInAsGuest: () => Promise<string | null>;
   signUp: (data: SignUpData) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
   changePassword: (password: string) => Promise<string | null>;
@@ -78,6 +80,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? translateError(error.message) : null;
   }, []);
 
+  const signInAsGuest = useCallback<AuthState['signInAsGuest']>(async () => {
+    const { data, error } = await supabase.auth.signInAnonymously({
+      options: { data: { name: 'Invitado' } },
+    });
+    if (error) return translateError(error.message);
+    if (!data.user) return 'No se pudo iniciar la sesión de invitado. Inténtalo de nuevo.';
+    setUser(data.user);
+    setProfile(null);
+    return null;
+  }, []);
+
   const signUp = useCallback<AuthState['signUp']>(async ({ name, email, phone, password }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -98,8 +111,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthState>(
-    () => ({ user, profile, isAdmin: profile?.role === 'admin', loading, signIn, signUp, signOut, changePassword }),
-    [user, profile, loading, signIn, signUp, signOut, changePassword]
+    () => ({ user, profile, isAdmin: profile?.role === 'admin', isGuest: user?.is_anonymous ?? false, loading, signIn, signInAsGuest, signUp, signOut, changePassword }),
+    [user, profile, loading, signIn, signInAsGuest, signUp, signOut, changePassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

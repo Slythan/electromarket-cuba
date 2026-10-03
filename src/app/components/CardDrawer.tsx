@@ -24,7 +24,7 @@ export default function CartDrawer() {
     if (!items.length) return;
     if (!user) {
       open('auth', { tab: 'login', thenCheckout: true });
-      toast('Ingresa o crea tu cuenta para terminar la compra');
+      toast('Ingresa, crea una cuenta o continúa como invitado');
       return;
     }
     open('checkout');

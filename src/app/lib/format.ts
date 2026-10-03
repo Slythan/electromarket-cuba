@@ -8,6 +8,8 @@ export const onlyDigits = (value: string) => value.replace(/\D/g, '');
 /** Traduce los errores más comunes de Supabase al español. */
 export function translateError(message?: string): string {
   const m = message ?? '';
+  if (/anonymous sign-ins? (?:are|is) disabled|anonymous provider is disabled/i.test(m))
+    return 'Las compras como invitado no están habilitadas en Supabase. Activa Anonymous Sign-Ins en Authentication > Sign In / Providers.';
   if (/create_order_with_inventory.*schema cache|could not find the function.*create_order_with_inventory/i.test(m))
     return 'Falta activar la validación segura de pedidos: ejecuta supabase_order_checkout.sql en el SQL Editor de Supabase.';
   if (/Invalid login credentials/i.test(m)) return 'Correo o contraseña incorrectos.';
