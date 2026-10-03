@@ -1,10 +1,10 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { useStore } from './StoreContext';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
-import { priceForRole, type CartItem, type CartLine } from '@/lib/types';
+import { fetchProductsByIds } from '@/services/products';
+import { priceForRole, type CartItem, type CartLine, type Product } from '@/lib/types';
 
 const STORAGE_KEY = 'tienda:cart';
 
@@ -13,7 +13,7 @@ interface CartState {
   count: number;
   total: number;
   qtyOf: (productId: string) => number;
-  add: (productId: string) => void;
+  add: (product: Product) => void;
   dec: (productId: string) => void;
   remove: (productId: string) => void;
   clear: () => void;
@@ -27,6 +27,14 @@ export function useCart(): CartState {
   return ctx;
 }
 
+const isProduct = (value: unknown): value is Product => {
+  if (typeof value !== 'object' || value === null) return false;
+  const product = value as Product;
+  return typeof product.id === 'string' && typeof product.name === 'string' &&
+    typeof product.price === 'number' && typeof product.managerPrice === 'number' &&
+    typeof product.imageUrl === 'string' && Array.isArray(product.imageUrls);
+};
+
 const isLine = (v: unknown): v is CartLine =>
   typeof v === 'object' && v !== null &&
   typeof (v as CartLine).id === 'string' && typeof (v as CartLine).qty === 'number';
@@ -36,63 +44,79 @@ function readStoredCart(): CartLine[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed: unknown = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed.filter(isLine) : [];
+    return Array.isArray(parsed)
+      ? parsed.filter(isLine).map((line) => ({ ...line, product: isProduct(line.product) ? line.product : undefined }))
+      : [];
   } catch {
     return [];
   }
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const { products, loading } = useStore();
   const { profile } = useAuth();
   const toast = useToast();
   // Se lee del navegador al montar. No causa error de hidratación porque
   // lo que se muestra depende de `products`, que empieza vacío.
   const [lines, setLines] = useState<CartLine[]>(readStoredCart);
+  const [loadedProductIds, setLoadedProductIds] = useState<Set<string>>(() => new Set());
 
-  // Guarda el carrito (descartando solo productos que ya no existen: el store
-  // siempre carga el catálogo completo, así que nunca borra artículos de otras categorías)
+  useEffect(() => {
+    const missingIds = lines.map((line) => line.id).filter((id) => !loadedProductIds.has(id));
+    if (!missingIds.length) return;
+    let active = true;
+    fetchProductsByIds(missingIds)
+      .then((fetched) => {
+        if (!active) return;
+        const byId = new Map(fetched.map((product) => [product.id, product]));
+        setLines((current) => current
+          .filter((line) => !missingIds.includes(line.id) || byId.has(line.id))
+          .map((line) => byId.has(line.id) ? { ...line, product: byId.get(line.id) } : line));
+        setLoadedProductIds((current) => new Set([...current, ...missingIds]));
+      })
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [lines, loadedProductIds]);
+
   useEffect(() => {
     try {
-      const keep = loading || products.length === 0 ? lines : lines.filter((l) => products.some((p) => p.id === l.id));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(keep));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
     } catch {
       /* almacenamiento no disponible */
     }
-  }, [lines, products, loading]);
+  }, [lines]);
 
   const items = useMemo<CartItem[]>(() => {
     const out: CartItem[] = [];
     for (const l of lines) {
-      const product = products.find((p) => p.id === l.id);
+      const product = l.product;
       if (!product || !product.visible) continue;
       const qty = Math.min(l.qty, product.stock ?? Infinity);
       if (qty > 0) out.push({ product: { ...product, price: priceForRole(product, profile?.role) }, qty });
     }
     return out;
-  }, [lines, products, profile?.role]);
+  }, [lines, profile?.role]);
 
-  const count = useMemo(() => items.reduce((a, i) => a + i.qty, 0), [items]);
+  const count = useMemo(() => lines.reduce((total, line) => total + line.qty, 0), [lines]);
   const total = useMemo(() => items.reduce((a, i) => a + i.product.price * i.qty, 0), [items]);
 
-  const qtyOf = useCallback((id: string) => items.find((i) => i.product.id === id)?.qty ?? 0, [items]);
+  const qtyOf = useCallback((id: string) => lines.find((line) => line.id === id)?.qty ?? 0, [lines]);
 
   const add = useCallback(
-    (id: string) => {
-      const product = products.find((p) => p.id === id);
-      if (!product) return;
+    (product: Product) => {
+      const id = product.id;
       const current = lines.find((l) => l.id === id)?.qty ?? 0;
       if (product.stock !== null && current + 1 > product.stock) {
         toast(`Stock máximo disponible: ${product.stock}`);
         return;
       }
+      setLoadedProductIds((previous) => new Set([...previous, id]));
       setLines((prev) =>
         prev.some((l) => l.id === id)
-          ? prev.map((l) => (l.id === id ? { ...l, qty: l.qty + 1 } : l))
-          : [...prev, { id, qty: 1 }]
+          ? prev.map((l) => (l.id === id ? { ...l, qty: l.qty + 1, product } : l))
+          : [...prev, { id, qty: 1, product }]
       );
     },
-    [products, lines, toast]
+    [lines, toast]
   );
 
   const dec = useCallback((id: string) => {

@@ -16,7 +16,7 @@ import { categoryPath } from '@/lib/slugs';
 
 export default function ProductDetail({ initialProduct }: { initialProduct: Product }) {
   const params = useParams<{ productId: string }>();
-  const { categories, products, settings, loading: storeLoading } = useStore();
+  const { categories, settings } = useStore();
   const { profile, isAdmin } = useAuth();
   const cart = useCart();
   const [loaded, setLoaded] = useState<{ id: string; product: Product | null } | null>({ id: params.productId, product: initialProduct });
@@ -63,8 +63,8 @@ export default function ProductDetail({ initialProduct }: { initialProduct: Prod
   const limited = product.stock !== null;
   const soldOut = limited && (product.stock ?? 0) <= 0;
   const commissionBase = Math.round((product.price - product.managerPrice) * 100) / 100;
-  const canAdd = products.some((item) => item.id === product.id);
-  const hasRelated = Boolean(category) && products.some((item) => item.visible && item.categoryId === category?.id && item.id !== product.id);
+  const canAdd = product.visible || isAdmin;
+  const hasRelated = Boolean(category);
 
   return (
     <div className="container product-page">
@@ -139,14 +139,14 @@ export default function ProductDetail({ initialProduct }: { initialProduct: Prod
             {soldOut ? (
               <Button block disabled>Agotado</Button>
             ) : !canAdd ? (
-              <Button block disabled>{storeLoading ? 'Cargando…' : 'Disponible en un momento'}</Button>
+              <Button block disabled>No disponible</Button>
             ) : qty > 0 ? (
               <>
-                <Stepper value={qty} onInc={() => cart.add(product.id)} onDec={() => cart.dec(product.id)} />
+                <Stepper value={qty} onInc={() => cart.add(product)} onDec={() => cart.dec(product.id)} />
                 <Button variant="link" className="danger-text" onClick={() => cart.remove(product.id)}>Quitar del carrito</Button>
               </>
             ) : (
-              <Button block onClick={() => cart.add(product.id)}>Añadir al carrito</Button>
+              <Button block onClick={() => cart.add(product)}>Añadir al carrito</Button>
             )}
           </div>
 
@@ -163,7 +163,7 @@ export default function ProductDetail({ initialProduct }: { initialProduct: Prod
             <div><span className="eyebrow">TAMBIÉN TE PUEDE INTERESAR</span><h2>Más de {category.name}</h2></div>
             <Link className="subcategory-section__link" href={categoryPath(category)}>Ver toda la categoría →</Link>
           </div>
-          <ProductGrid categoryId={category.id} categories={categories} includeChildren={false} excludeId={product.id} />
+          <ProductGrid categoryId={category.id} categories={categories} includeChildren={false} excludeId={product.id} hideEmpty />
         </section>
       )}
     </div>

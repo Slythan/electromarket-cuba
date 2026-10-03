@@ -37,6 +37,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const { user, loading: authLoading } = useAuth();
   const pathname = usePathname();
   const isHome = pathname === '/';
+  const isAdminArea = pathname.startsWith('/admin') && pathname !== '/admin/login';
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [products, setProducts] = useState<Product[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
@@ -45,12 +46,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const reloadProducts = useCallback(async () => {
+    if (!isAdminArea) {
+      window.dispatchEvent(new Event('catalog:refresh'));
+      return;
+    }
     try {
       setProducts(await fetchProducts());
     } catch {
       /* se mantiene la lista anterior */
     }
-  }, []);
+  }, [isAdminArea]);
 
   const reloadSettings = useCallback(async () => {
     setSettings(await fetchSettings());
@@ -86,9 +91,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (authLoading) return;
     let active = true;
-    // Siempre se carga el catálogo completo: el carrito necesita resolver cualquier
-    // producto y cada vista filtra por categoría en pantalla.
-    Promise.all([fetchSettings(), fetchCategories().catch(() => null), fetchProducts().catch(() => null), fetchDeliveryZones().catch(() => null)])
+    Promise.all([
+      fetchSettings(),
+      fetchCategories().catch(() => null),
+      isAdminArea ? fetchProducts().catch(() => null) : Promise.resolve(null),
+      fetchDeliveryZones().catch(() => null),
+    ])
       .then(([nextSettings, nextCategories, nextProducts, nextZones]) => {
         if (!active) return;
         setSettings(nextSettings);
@@ -100,7 +108,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [authLoading, userId]);
+  }, [authLoading, userId, isAdminArea]);
 
   // Los banners solo se muestran en la portada.
   useEffect(() => {

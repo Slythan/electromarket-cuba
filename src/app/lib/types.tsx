@@ -99,6 +99,7 @@ export interface Order {
 export interface CartLine {
   id: string;
   qty: number;
+  product?: Product;
 }
 
 export interface CartItem {

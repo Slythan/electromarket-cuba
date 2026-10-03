@@ -17,11 +17,58 @@ export interface ProductInput {
   categoryId?: string | null;
 }
 
+export interface PublicProductPage {
+  products: Product[];
+  total: number;
+  hasMore: boolean;
+}
+
+const PUBLIC_PRODUCT_COLUMNS = 'id,name,price,manager_price,stock,description,image_url,image_urls,visible,category_id';
+
 export async function fetchProducts(): Promise<Product[]> {
   const { data, error } = await supabase
     .from('products')
     .select('*')
     .order('created_at', { ascending: false });
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as ProductRow[]).map(mapProduct);
+}
+
+export async function fetchVisibleProductsPage({ categoryIds = [], query = '', page = 0, pageSize = 12 }: {
+  categoryIds?: string[];
+  query?: string;
+  page?: number;
+  pageSize?: number;
+} = {}): Promise<PublicProductPage> {
+  const safePage = Math.max(0, Math.floor(page));
+  const safePageSize = Math.min(48, Math.max(1, Math.floor(pageSize)));
+  const from = safePage * safePageSize;
+  let request = supabase
+    .from('products')
+    .select(PUBLIC_PRODUCT_COLUMNS, { count: 'exact' })
+    .eq('visible', true)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: true });
+
+  if (categoryIds.length) request = request.in('category_id', categoryIds);
+
+  const search = query.trim().replace(/[^a-zA-Z0-9À-ÿ\s-]/g, ' ').replace(/\s+/g, ' ').trim();
+  if (search) request = request.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+
+  const { data, count, error } = await request.range(from, from + safePageSize - 1);
+  if (error) throw new Error(error.message);
+
+  const products = ((data ?? []) as ProductRow[]).map(mapProduct);
+  const total = count ?? products.length;
+  return { products, total, hasMore: from + products.length < total };
+}
+
+export async function fetchProductsByIds(ids: string[]): Promise<Product[]> {
+  if (!ids.length) return [];
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .in('id', ids);
   if (error) throw new Error(error.message);
   return ((data ?? []) as ProductRow[]).map(mapProduct);
 }

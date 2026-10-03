@@ -43,7 +43,7 @@ export default function CartDrawer() {
                 <div className="cart-item__info">
                   <strong>{product.name}</strong>
                   <span className="muted">{money(product.price)}</span>
-                  <Stepper size="sm" value={qty} onInc={() => add(product.id)} onDec={() => dec(product.id)} />
+                  <Stepper size="sm" value={qty} onInc={() => add(product)} onDec={() => dec(product.id)} />
                 </div>
                 <div className="cart-item__side">
                   <strong>{money(product.price * qty)}</strong>

@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { notFound, redirect } from 'next/navigation';
 import { baseMetadata, toMetaDescription, SITE_URL } from '@/lib/seo';
 import { categoryPath, productPath, routeEntityId } from '@/lib/slugs';
-import { fetchPublicCategories, fetchPublicProducts } from '@/lib/publicCatalog';
+import { fetchPublicCategories, fetchPublicProductsPage } from '@/lib/publicCatalog';
 import CategoryDetail from './CategoryDetail';
+import type { PublicProductPage } from '@/services/products';
 
 type Props = {
   params: Promise<{ categoryId: string }>;
@@ -35,15 +36,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { categoryId } = await params;
-  const [categories, products] = await Promise.all([fetchPublicCategories(), fetchPublicProducts()]);
+  const categories = await fetchPublicCategories();
   const category = categories.find((c) => c.id === routeEntityId(categoryId));
 
   if (!category) notFound();
 
   const canonicalPath = categoryPath(category);
   if (categoryId !== canonicalPath.split('/').at(-1)) redirect(canonicalPath);
-  const categoryIds = new Set([category.id, ...categories.filter((item) => item.parentId === category.id).map((item) => item.id)]);
-  const categoryProducts = products.filter((product) => categoryIds.has(product.categoryId ?? ''));
+  const productCategoryIds = [category.id, ...categories.filter((item) => item.parentId === category.id).map((item) => item.id)];
+  const productPages = await Promise.all(productCategoryIds.map(async (id) => [
+    id,
+    await fetchPublicProductsPage([id], '', 0, 12).catch((): PublicProductPage => ({ products: [], total: 0, hasMore: false })),
+  ] as const));
+  const initialPages = Object.fromEntries(productPages) as Record<string, PublicProductPage>;
+  const categoryProducts = productPages.flatMap(([, result]) => result.products);
+  const totalProducts = productPages.reduce((total, [, result]) => total + result.total, 0);
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -54,8 +61,8 @@ export default async function CategoryPage({ params }: Props) {
     ...(categoryProducts.length > 0 ? {
       'mainEntity': {
         '@type': 'ItemList',
-        'numberOfItems': categoryProducts.length,
-        'itemListElement': categoryProducts.map((product, index) => ({
+        'numberOfItems': totalProducts,
+        'itemListElement': categoryProducts.slice(0, 12).map((product, index) => ({
           '@type': 'ListItem',
           'position': index + 1,
           'item': {
@@ -74,7 +81,7 @@ export default async function CategoryPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <CategoryDetail initialCategories={categories} initialCategory={category} initialProducts={products} />
+      <CategoryDetail initialCategories={categories} initialCategory={category} initialPages={initialPages} />
     </>
   );
 }

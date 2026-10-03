@@ -251,6 +251,7 @@ h1, h2, h3 { line-height: 1.2; }
 .catalog-section__heading h2 { margin: 0; color: #132942; font-size: clamp(1.7rem, 3vw, 2.3rem); letter-spacing: -0.04em; }
 .catalog-section__arrow { color: var(--accent); font-size: 0.85rem; font-weight: 700; }
 .catalog-section .grid { padding-top: 8px; }
+.catalog-load-more { display: flex; justify-content: center; padding: 24px 0 8px; }
 .hero-carousel { position: relative; min-height: 300px; margin: 24px 0; overflow: hidden; border: 1px solid #111421; border-radius: 18px; background: #0a0b16; box-shadow: 0 20px 45px rgba(8, 16, 32, 0.18); }
 .hero-carousel__track { display: flex; width: 100%; transition: transform 1.4s cubic-bezier(0.22, 0.72, 0.22, 1); will-change: transform; }
 .hero-carousel__slide { display: grid; flex: 0 0 100%; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 300px; }

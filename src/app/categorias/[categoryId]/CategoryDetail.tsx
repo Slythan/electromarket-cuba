@@ -4,10 +4,11 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import ProductGrid from '@/components/ProductGrid';
 import { useStore } from '@/context/StoreContext';
-import type { Category, Product } from '@/lib/types';
+import type { Category } from '@/lib/types';
 import { categoryPath } from '@/lib/slugs';
+import type { PublicProductPage } from '@/services/products';
 
-export default function CategoryDetail({ initialCategories, initialCategory, initialProducts }: { initialCategories: Category[]; initialCategory: Category; initialProducts: Product[] }) {
+export default function CategoryDetail({ initialCategories, initialCategory, initialPages }: { initialCategories: Category[]; initialCategory: Category; initialPages: Record<string, PublicProductPage> }) {
   const { categories: storeCategories } = useStore();
   const categories = storeCategories.length ? storeCategories : initialCategories;
   const searchParams = useSearchParams();
@@ -42,16 +43,16 @@ export default function CategoryDetail({ initialCategories, initialCategory, ini
                 </Link>
                 <Link className="subcategory-section__link" href={categoryPath(child)}>Ver toda la sección →</Link>
               </div>
-              <ProductGrid query={query} categoryId={child.id} categories={categories} initialProducts={initialProducts} includeChildren={false} />
+              <ProductGrid query={query} categoryId={child.id} categories={categories} initialProducts={initialPages[child.id]?.products ?? []} initialHasMore={initialPages[child.id]?.hasMore ?? false} includeChildren={false} />
             </section>
           ))}
           <section className="subcategory-section subcategory-section--direct">
             <div className="subcategory-section__heading"><div><span className="eyebrow">CATEGORÍA PRINCIPAL</span><h2>Otros productos de {category.name}</h2></div></div>
-            <ProductGrid query={query} categoryId={category.id} categories={categories} initialProducts={initialProducts} includeChildren={false} />
+            <ProductGrid query={query} categoryId={category.id} categories={categories} initialProducts={initialPages[category.id]?.products ?? []} initialHasMore={initialPages[category.id]?.hasMore ?? false} includeChildren={false} />
           </section>
         </div>
       ) : (
-        <ProductGrid query={query} categoryId={category.id} categories={categories} initialProducts={initialProducts} includeChildren={false} />
+        <ProductGrid query={query} categoryId={category.id} categories={categories} initialProducts={initialPages[category.id]?.products ?? []} initialHasMore={initialPages[category.id]?.hasMore ?? false} includeChildren={false} />
       )}
     </div>
   );
