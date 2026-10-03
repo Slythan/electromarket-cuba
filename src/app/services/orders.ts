@@ -43,6 +43,7 @@ interface CreateOrderInput {
   customer: Pick<CustomerData, 'name' | 'phone' | 'address' | 'notes'>;
   items: CreateOrderItemInput[];
   negotiatedTotal?: number | null;
+  expectedDeliveryFee: number;
   deliveryZone?: string | null;
 }
 
@@ -58,13 +59,14 @@ export interface CreatedOrder {
   deliveryZone: string | null;
 }
 
-export async function createOrder({ idempotencyKey, customer, items, negotiatedTotal, deliveryZone }: CreateOrderInput): Promise<CreatedOrder> {
+export async function createOrder({ idempotencyKey, customer, items, negotiatedTotal, expectedDeliveryFee, deliveryZone }: CreateOrderInput): Promise<CreatedOrder> {
   const { data, error } = await supabase.rpc('create_order_with_inventory', {
     p_idempotency_key: idempotencyKey,
     p_customer: customer,
     p_items: items.map(({ id, qty }) => ({ id, qty })),
     p_expected_items: items.map(({ id, qty, expectedPrice }) => ({ id, qty, expectedPrice })),
     p_negotiated_total: negotiatedTotal ?? null,
+    p_expected_delivery_fee: expectedDeliveryFee,
     p_delivery_zone: deliveryZone ?? null,
   });
   if (error) throw new Error(error.message);

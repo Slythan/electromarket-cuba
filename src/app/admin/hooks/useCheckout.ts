@@ -6,7 +6,7 @@ import { useCart } from '@/context/CartContext';
 import { useStore } from '@/context/StoreContext';
 import { useUI } from '@/context/UIContext';
 import { buildOrderMessage, whatsAppLink, onlyDigits, translateError } from '@/lib/format';
-import { findZone } from '@/lib/delivery';
+import { deliveryFeeFor, findZone } from '@/lib/delivery';
 import { createOrder, type CreatedOrder } from '@/services/orders';
 import { hasManagerPricing, type CustomerData } from '@/lib/types';
 
@@ -17,7 +17,7 @@ import { hasManagerPricing, type CustomerData } from '@/lib/types';
 export function useCheckout() {
   const { user, profile } = useAuth();
   const { items, total, clear, refreshProducts } = useCart();
-  const { settings, deliveryZones, reloadProducts } = useStore();
+  const { settings, deliveryZones, reloadProducts, reloadDeliveryZones } = useStore();
   const { open, setDone } = useUI();
   const idempotency = useRef<{ fingerprint: string; key: string } | null>(null);
 
@@ -41,8 +41,10 @@ export function useCheckout() {
       if (isManager && (!Number.isFinite(pactado) || pactado <= 0)) return 'El precio pactado debe ser mayor que cero.';
 
       // Mensajería: el municipio fija el precio y el pedido se guarda con el nombre del municipio.
-      const zone = isManager ? findZone(deliveryZones, customer.deliveryZone ?? '') : undefined;
-      if (isManager && !zone) return 'Elige el municipio de entrega para calcular la mensajería.';
+      const zone = findZone(deliveryZones, customer.deliveryZone ?? '');
+      if (!zone) return 'Elige el municipio de entrega para calcular la mensajería.';
+      const deliveryBasis = isManager ? pactado : cartTotal;
+      const expectedDeliveryFee = deliveryFeeFor(deliveryBasis, zone.price);
       const customerData = {
         name: customer.name,
         phone: customer.phone,
@@ -58,7 +60,8 @@ export function useCheckout() {
         customer: customerData,
         items: expectedItems,
         negotiatedTotal: isManager ? pactado : null,
-        deliveryZone: isManager ? zone?.municipality : null,
+        deliveryZone: zone.municipality,
+        expectedDeliveryFee,
       });
       if (idempotency.current?.fingerprint !== fingerprint) {
         idempotency.current = { fingerprint, key: crypto.randomUUID() };
@@ -80,7 +83,8 @@ export function useCheckout() {
           customer: customerData,
           items: expectedItems,
           negotiatedTotal: isManager ? pactado : null,
-          deliveryZone: isManager ? zone?.municipality : null,
+          deliveryZone: zone.municipality,
+          expectedDeliveryFee,
         });
       } catch (error) {
         try { popup?.close(); } catch { /* el navegador puede impedir cerrar la pestaña */ }
@@ -92,6 +96,10 @@ export function useCheckout() {
         if (message.startsWith('STOCK_CHANGED:')) {
           await refreshProducts().catch(() => undefined);
           return 'Cambió la disponibilidad. Actualizamos tu carrito; revisa las cantidades y confirma otra vez.';
+        }
+        if (message.startsWith('DELIVERY_CHANGED:')) {
+          await reloadDeliveryZones();
+          return 'Cambió el precio de mensajería. Actualizamos las tarifas; revisa el total y confirma otra vez.';
         }
         return translateError(message) || 'No se pudo guardar el pedido. Revisa tu conexión e inténtalo de nuevo.';
       }
@@ -122,8 +130,8 @@ export function useCheckout() {
         managerCost: isManager ? created.managerCost ?? undefined : undefined,
         pactado: isManager ? created.total : undefined,
         commissionBase: isManager ? created.commissionBase ?? undefined : undefined,
-        deliveryFee: isManager ? created.deliveryFee : undefined,
-        deliveryZone: isManager ? created.deliveryZone ?? undefined : undefined,
+        deliveryFee: created.deliveryFee,
+        deliveryZone: created.deliveryZone ?? undefined,
         freeDelivery: isManager ? created.deliveryFee === 0 : undefined,
         commission: isManager ? created.commission ?? undefined : undefined,
       });
@@ -143,7 +151,7 @@ export function useCheckout() {
       await reloadProducts(); // refleja el stock descontado
       return null;
     },
-    [whatsappReady, user, profile, items, total, settings, deliveryZones, clear, refreshProducts, setDone, open, reloadProducts]
+    [whatsappReady, user, profile, items, total, settings, deliveryZones, clear, refreshProducts, reloadDeliveryZones, setDone, open, reloadProducts]
   );
 
   return { submit, whatsappReady };

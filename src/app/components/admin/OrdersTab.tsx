@@ -123,6 +123,12 @@ export default function OrdersTab({ orders, setOrders, loading, onReload }: Orde
                   </div>
                 ))}
               </div>
+              {o.managerCost == null && o.deliveryZone && (
+                <div className="sumline">
+                  <span>Mensajería · {o.deliveryZone}</span>
+                  <span>{o.deliveryFee ? money(o.deliveryFee) : 'Gratis'}</span>
+                </div>
+              )}
               <div className="sumline sumline--total">
                 <b>Total</b>
                 <b>{money(o.total)}</b>

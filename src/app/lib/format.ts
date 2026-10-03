@@ -44,7 +44,7 @@ interface WhatsAppParams {
   /** Margen bruto: pactado − costo del gestor. */
   commissionBase?: number;
   deliveryFee?: number;
-  /** Municipio de entrega (solo pedidos de gestor). */
+  /** Municipio de entrega. */
   deliveryZone?: string;
   /** true cuando la mensajería salió gratis por ser un pedido pequeño. */
   freeDelivery?: boolean;
@@ -69,6 +69,11 @@ export function buildOrderMessage({ storeName, currency, customer, items, total,
   items.forEach(({ product, qty }) =>
     lines.push(`  • ${qty} x ${product.name} - ${formatMoney(product.price * qty, currency)}`)
   );
+  if (!managerName && deliveryFee !== undefined) {
+    const zoneLabel = zoneName ? ` (${zoneName})` : '';
+    const deliveryLabel = deliveryFee === 0 ? `Gratis${zoneLabel}` : `${formatMoney(deliveryFee, currency)}${zoneLabel}`;
+    lines.push('', `• \u{1F69A} Mensajería: ${deliveryLabel}`);
+  }
   lines.push('', `\u{1F4B0} Total a cobrar: ${formatMoney(total, currency)}`);
   if (managerName && managerCost !== undefined && pactado !== undefined && commissionBase !== undefined && deliveryFee !== undefined && commission !== undefined) {
     // La mensajería sale del municipio; si el pedido es pequeño, es gratis.

@@ -49,8 +49,10 @@ export default function CheckoutModal() {
 
   const zone = findZone(deliveryZones, zoneInput);
   const zonePrice = zone?.price ?? 0;
-  const freeDelivery = isFreeDelivery(pactadoPreview || total);
-  const deliveryPreview = isManager ? deliveryFeeFor(pactadoPreview, zonePrice) : 0;
+  const deliveryBasis = isManager ? pactadoPreview || total : total;
+  const freeDelivery = isFreeDelivery(deliveryBasis);
+  const deliveryPreview = zone ? deliveryFeeFor(deliveryBasis, zonePrice) : 0;
+  const customerFinalTotal = round2(total + deliveryPreview);
 
   // Costo del gestor = suma de precios de gestor; el carrito ya los muestra así.
   const managerCostPreview = managerCostOf(items);
@@ -78,6 +80,7 @@ export default function CheckoutModal() {
       return setError('Escribe un teléfono válido, con al menos 8 dígitos.');
     }
     if (!address) return setError('Escribe la dirección de entrega.');
+    if (!deliveryZone) return setError('Elige el municipio de entrega para calcular la mensajería.');
 
     let negotiatedTotal = 0;
     if (isManager) {
@@ -125,10 +128,27 @@ export default function CheckoutModal() {
             <span>{money(product.price * qty)}</span>
           </div>
         ))}
-        <div className="sumline sumline--total">
-          <b>Total</b>
-          <b>{money(total)}</b>
-        </div>
+        {isManager ? (
+          <div className="sumline sumline--total">
+            <b>Tu costo de productos</b>
+            <b>{money(total)}</b>
+          </div>
+        ) : (
+          <>
+            <div className="sumline">
+              <b>Subtotal de productos</b>
+              <b>{money(total)}</b>
+            </div>
+            <div className="sumline">
+              <span>Mensajería{zone ? ` · ${zone.municipality}` : ''}</span>
+              <span>{zone ? (freeDelivery ? 'Gratis' : money(deliveryPreview)) : 'Elige municipio'}</span>
+            </div>
+            <div className="sumline sumline--total">
+              <b>Total a pagar</b>
+              <b>{zone ? money(customerFinalTotal) : 'Elige municipio'}</b>
+            </div>
+          </>
+        )}
       </div>
 
       {!whatsappReady && (
@@ -173,9 +193,43 @@ export default function CheckoutModal() {
           />
         </Field>
 
+        <Field
+          label="Municipio de entrega"
+          hint={isManager ? 'El precio de mensajería se descuenta de tu comisión.' : 'La mensajería se suma al subtotal; puede ser gratis en pedidos pequeños.'}
+        >
+          <select
+            className="input"
+            name="deliveryZone"
+            value={zoneInput}
+            onChange={(event) => setZoneInput(event.target.value)}
+            required
+          >
+            <option value="">Elegir municipio…</option>
+            {deliveryZones.map((item) => (
+              <option key={item.id} value={item.municipality}>
+                {item.municipality} · {money(item.price)}
+              </option>
+            ))}
+          </select>
+        </Field>
+
+        {!deliveryZones.length && (
+          <p className="warn">
+            La tienda todavía no tiene municipios con precio de mensajería. Pídele al
+            administrador que los configure en el panel (pestaña Mensajería).
+          </p>
+        )}
+
+        {zone && freeDelivery && (
+          <p className="note">
+            🚚 Mensajería <strong>gratis</strong>: los pedidos de menos de{' '}
+            {money(FREE_DELIVERY_UNDER)} no pagan entrega.
+          </p>
+        )}
+
         {isManager && (
           <>
-            <div className="two-col">
+            <div>
               <Field label={`Precio pactado (${settings.currency})`}>
                 <input
                   className="input"
@@ -195,37 +249,7 @@ export default function CheckoutModal() {
                     : 'Lo que pagará el cliente final (puede ser mayor que tu costo).'}
                 </small>
               </Field>
-              <Field label="Municipio de entrega" hint="Su precio de mensajería se descuenta de la comisión.">
-                <select
-                  className="input"
-                  name="deliveryZone"
-                  value={zoneInput}
-                  onChange={(event) => setZoneInput(event.target.value)}
-                  required
-                >
-                  <option value="">Elegir municipio…</option>
-                  {deliveryZones.map((item) => (
-                    <option key={item.id} value={item.municipality}>
-                      {item.municipality} · {money(item.price)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
             </div>
-
-            {!deliveryZones.length && (
-              <p className="warn">
-                La tienda todavía no tiene municipios con precio de mensajería. Pídele al
-                administrador que los configure en el panel (pestaña Mensajería).
-              </p>
-            )}
-
-            {freeDelivery && (
-              <p className="note">
-                🚚 Mensajería <strong>gratis</strong>: los pedidos de menos de{' '}
-                {money(FREE_DELIVERY_UNDER)} no pagan entrega.
-              </p>
-            )}
 
             {!freeDelivery && zone && commissionPreview < 0 && (
               <p className="warn">

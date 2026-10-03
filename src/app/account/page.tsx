@@ -59,6 +59,12 @@ function OrderCard({ order, currency }: { order: Order; currency: Currency }) {
           <span>{formatMoney(item.price * item.qty, currency)}</span>
         </div>
       ))}
+      {order.deliveryZone && (
+        <div className="sumline">
+          <span>Mensajería · {order.deliveryZone}</span>
+          <span>{order.deliveryFee ? formatMoney(order.deliveryFee, currency) : 'Gratis'}</span>
+        </div>
+      )}
       <div className="sumline sumline--total">
         <b>Total</b>
         <b>{formatMoney(order.total, currency)}</b>

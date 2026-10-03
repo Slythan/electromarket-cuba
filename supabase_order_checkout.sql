@@ -17,6 +17,7 @@ alter table public.orders add constraint orders_status_check
   check (status in ('creada', 'confirmada', 'enviada', 'cobrada', 'cancelada'));
 
 drop policy if exists "usuario crea sus pedidos" on public.orders;
+drop function if exists public.create_order_with_inventory(uuid, jsonb, jsonb, jsonb, numeric, text);
 
 create or replace function public.release_order_stock()
 returns trigger
@@ -91,6 +92,7 @@ create or replace function public.create_order_with_inventory(
   p_items jsonb,
   p_expected_items jsonb,
   p_negotiated_total numeric default null,
+  p_expected_delivery_fee numeric default null,
   p_delivery_zone text default null
 )
 returns jsonb
@@ -130,6 +132,11 @@ begin
   end if;
   if p_idempotency_key is null then
     raise exception 'Falta el identificador seguro del intento de compra.';
+  end if;
+  if p_expected_delivery_fee is null
+     or p_expected_delivery_fee::text in ('NaN', 'Infinity', '-Infinity')
+     or p_expected_delivery_fee < 0 then
+    raise exception 'El precio de mensajería esperado no es válido.';
   end if;
 
   perform pg_catalog.pg_advisory_xact_lock(
@@ -283,6 +290,18 @@ begin
   v_items_cost := round(v_items_cost, 2);
   v_manager_cost := round(v_manager_cost, 2);
 
+  if nullif(btrim(p_delivery_zone), '') is null then
+    raise exception 'Elige el municipio de entrega.';
+  end if;
+  select municipality, price into v_zone_name, v_zone_price
+    from public.delivery_zones
+   where municipality = btrim(p_delivery_zone)
+     and visible = true
+   for share;
+  if not found then
+    raise exception 'El municipio de entrega ya no está disponible. Actualiza la página.';
+  end if;
+
   if v_role in ('admin', 'manager') then
     if p_negotiated_total is null
        or p_negotiated_total::text in ('NaN', 'Infinity', '-Infinity')
@@ -294,23 +313,18 @@ begin
       raise exception 'El precio pactado no puede ser menor que el costo del gestor (%).', v_manager_cost;
     end if;
 
-    if nullif(btrim(p_delivery_zone), '') is null then
-      raise exception 'Elige el municipio de entrega.';
-    end if;
-    select municipality, price into v_zone_name, v_zone_price
-      from public.delivery_zones
-     where municipality = btrim(p_delivery_zone)
-       and visible = true
-     for share;
-    if not found then
-      raise exception 'El municipio de entrega ya no está disponible. Actualiza la página.';
-    end if;
     -- Mantener este mínimo sincronizado con FREE_DELIVERY_UNDER en lib/delivery.ts.
     v_delivery_fee := case when v_total < 5 then 0 else round(v_zone_price, 2) end;
     v_commission_base := round(v_total - v_manager_cost, 2);
     v_commission := round(v_commission_base - v_delivery_fee, 2);
   else
-    v_total := v_items_cost;
+    v_delivery_fee := case when v_items_cost < 5 then 0 else round(v_zone_price, 2) end;
+    v_total := round(v_items_cost + v_delivery_fee, 2);
+  end if;
+
+  if round(p_expected_delivery_fee, 2) is distinct from v_delivery_fee then
+    raise exception using
+      message = format('DELIVERY_CHANGED: la mensajería para %s ahora cuesta %s.', v_zone_name, v_delivery_fee);
   end if;
 
   insert into public.orders (
@@ -340,8 +354,8 @@ begin
 end;
 $$;
 
-revoke all on function public.create_order_with_inventory(uuid, jsonb, jsonb, jsonb, numeric, text) from public, anon;
-grant execute on function public.create_order_with_inventory(uuid, jsonb, jsonb, jsonb, numeric, text) to authenticated;
+revoke all on function public.create_order_with_inventory(uuid, jsonb, jsonb, jsonb, numeric, numeric, text) from public, anon;
+grant execute on function public.create_order_with_inventory(uuid, jsonb, jsonb, jsonb, numeric, numeric, text) to authenticated;
 revoke all on function public.release_order_stock() from public, anon, authenticated;
 
 commit;
