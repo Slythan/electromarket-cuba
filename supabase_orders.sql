@@ -5,7 +5,7 @@ update public.orders set status = 'creada' where status = 'nuevo';
 update public.orders set status = 'confirmada' where status = 'confirmado';
 update public.orders set status = 'enviada' where status = 'entregado';
 update public.orders set status = 'cobrada' where status = 'cancelado';
-alter table public.orders add constraint orders_status_check check (status in ('creada', 'confirmada', 'enviada', 'cobrada'));
+alter table public.orders add constraint orders_status_check check (status in ('creada', 'confirmada', 'enviada', 'cobrada', 'cancelada'));
 alter table public.orders alter column status set default 'creada';
 alter table public.orders add column if not exists negotiated_total numeric;
 alter table public.orders add column if not exists commission_base numeric;

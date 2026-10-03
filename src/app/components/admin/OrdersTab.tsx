@@ -19,7 +19,7 @@ interface OrdersTabProps {
 export default function OrdersTab({ orders, setOrders, loading, onReload }: OrdersTabProps) {
   const { settings } = useStore();
   const toast = useToast();
-  const statusLabels: Record<OrderStatus, string> = { creada: 'Creada', confirmada: 'Confirmada', enviada: 'Enviada', cobrada: 'Cobrada' };
+  const statusLabels: Record<OrderStatus, string> = { creada: 'Creada', confirmada: 'Confirmada', enviada: 'Enviada', cobrada: 'Cobrada', cancelada: 'Cancelada' };
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState({ customerName: '', phone: '', address: '', total: '', managerCost: '', deliveryFee: '' });
   const money = (n: number) => formatMoney(n, settings.currency);
@@ -102,6 +102,7 @@ export default function OrdersTab({ orders, setOrders, loading, onReload }: Orde
                   className="input input--select"
                   value={o.status}
                   aria-label="Estado del pedido"
+                  disabled={o.status === 'cancelada'}
                   onChange={(e) => changeStatus(o.id, e.target.value as OrderStatus)}
                 >
                   {ORDER_STATUSES.map((s) => (

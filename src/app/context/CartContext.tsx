@@ -17,6 +17,7 @@ interface CartState {
   dec: (productId: string) => void;
   remove: (productId: string) => void;
   clear: () => void;
+  refreshProducts: () => Promise<void>;
 }
 
 const CartContext = createContext<CartState | null>(null);
@@ -127,10 +128,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const remove = useCallback((id: string) => setLines((prev) => prev.filter((l) => l.id !== id)), []);
   const clear = useCallback(() => setLines([]), []);
+  const refreshProducts = useCallback(async () => {
+    if (!lines.length) return;
+    const ids = [...new Set(lines.map((line) => line.id))];
+    const fetched = await fetchProductsByIds(ids);
+    const byId = new Map(fetched.map((product) => [product.id, product]));
+    setLines((current) => current.flatMap((line) => {
+      const product = byId.get(line.id);
+      if (!product?.visible) return [];
+      const qty = Math.min(line.qty, product.stock ?? line.qty);
+      return qty > 0 ? [{ ...line, qty, product }] : [];
+    }));
+    setLoadedProductIds((current) => new Set([...current, ...ids]));
+  }, [lines]);
 
   const value = useMemo<CartState>(
-    () => ({ items, count, total, qtyOf, add, dec, remove, clear }),
-    [items, count, total, qtyOf, add, dec, remove, clear]
+    () => ({ items, count, total, qtyOf, add, dec, remove, clear, refreshProducts }),
+    [items, count, total, qtyOf, add, dec, remove, clear, refreshProducts]
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

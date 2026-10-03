@@ -32,51 +32,44 @@ export async function updateOrderStatus(id: string, status: OrderStatus): Promis
   if (error) throw new Error(error.message);
 }
 
-interface CreateOrderInput {
-  userId: string;
-  customer: CustomerData;
-  items: OrderItem[];
-  /** Precio pactado con el cliente. */
-  total: number;
-  /** Mismo valor que `total` (compatibilidad). */
-  negotiatedTotal?: number | null;
-  /** Costo del gestor (suma de precios de gestor). */
-  managerCost?: number | null;
-  /** Margen bruto: pactado − costo. */
-  commissionBase?: number | null;
-  deliveryFee?: number | null;
-  /** Comisión final: margen bruto − mensajería. */
-  commission?: number | null;
-  managerName?: string | null;
+export interface CreateOrderItemInput {
+  id: string;
+  qty: number;
+  expectedPrice: number;
 }
 
-/**
- * Número válido o `fallback`. `delivery_fee` es `not null` en la base de datos y los
- * pedidos de clientes no llevan mensajería: sin esto llegaría `null` (o `NaN`, que en
- * JSON viaja como `null`) y Supabase rechazaba el pedido completo.
- */
-const safeNumber = (value: number | null | undefined, fallback: number): number =>
-  typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+interface CreateOrderInput {
+  idempotencyKey: string;
+  customer: Pick<CustomerData, 'name' | 'phone' | 'address' | 'notes'>;
+  items: CreateOrderItemInput[];
+  negotiatedTotal?: number | null;
+  deliveryZone?: string | null;
+}
 
-export async function createOrder({ userId, customer, items, total, negotiatedTotal, managerCost, commissionBase, deliveryFee, commission, managerName }: CreateOrderInput): Promise<void> {
-  const { error } = await supabase.from('orders').insert({
-    user_id: userId,
-    customer_name: customer.name,
-    phone: customer.phone,
-    address: customer.address,
-    notes: customer.notes,
-    items,
-    total,
-    status: 'creada',
-    negotiated_total: negotiatedTotal ?? null,
-    manager_cost: managerCost ?? null,
-    commission_base: commissionBase ?? null,
-    delivery_fee: safeNumber(deliveryFee, 0),
-    commission: commission ?? null,
-    manager_name: managerName ?? null,
-    delivery_zone: customer.deliveryZone ?? null,
+export interface CreatedOrder {
+  id: string;
+  items: OrderItem[];
+  total: number;
+  managerCost: number | null;
+  commissionBase: number | null;
+  deliveryFee: number;
+  commission: number | null;
+  managerName: string | null;
+  deliveryZone: string | null;
+}
+
+export async function createOrder({ idempotencyKey, customer, items, negotiatedTotal, deliveryZone }: CreateOrderInput): Promise<CreatedOrder> {
+  const { data, error } = await supabase.rpc('create_order_with_inventory', {
+    p_idempotency_key: idempotencyKey,
+    p_customer: customer,
+    p_items: items.map(({ id, qty }) => ({ id, qty })),
+    p_expected_items: items.map(({ id, qty, expectedPrice }) => ({ id, qty, expectedPrice })),
+    p_negotiated_total: negotiatedTotal ?? null,
+    p_delivery_zone: deliveryZone ?? null,
   });
   if (error) throw new Error(error.message);
+  if (!data || typeof data !== 'object') throw new Error('Supabase no devolvió la confirmación del pedido.');
+  return data as CreatedOrder;
 }
 
 export async function updateOrder(id: string, input: Partial<Pick<Order, 'customerName' | 'phone' | 'address' | 'notes' | 'total' | 'negotiatedTotal' | 'managerCost' | 'commissionBase' | 'deliveryFee' | 'commission' | 'deliveryZone'>>): Promise<void> {

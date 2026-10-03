@@ -37,6 +37,7 @@ const ORDER_LABELS: Record<Order['status'], string> = {
   confirmada: 'Confirmada',
   enviada: 'Enviada',
   cobrada: 'Cobrada',
+  cancelada: 'Cancelada',
 };
 
 const ORDER_STAGES: Order['status'][] = ['creada', 'confirmada', 'enviada', 'cobrada'];

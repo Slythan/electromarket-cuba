@@ -26,11 +26,10 @@ export default function ProductGrid({ query = '', categoryId = '', categories = 
   const { isAdmin, profile } = useAuth();
   const cart = useCart();
   const search = query.trim();
-  const categoryIds = useMemo(() => {
-    if (!categoryId) return [];
-    const childIds = includeChildren ? categories.filter((category) => category.parentId === categoryId).map((category) => category.id) : [];
-    return [categoryId, ...childIds].sort();
-  }, [categories, categoryId, includeChildren]);
+  const categoryIdsKey = JSON.stringify(categoryId
+    ? [categoryId, ...(includeChildren ? categories.filter((category) => category.parentId === categoryId).map((category) => category.id) : [])].sort()
+    : []);
+  const categoryIds = useMemo<string[]>(() => JSON.parse(categoryIdsKey), [categoryIdsKey]);
   const dataKey = JSON.stringify([categoryIds, search, excludeId ?? '']);
   const [products, setProducts] = useState<Product[]>(() => initialProducts && !search ? initialProducts : []);
   const [hasMore, setHasMore] = useState(initialHasMore);
